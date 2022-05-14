@@ -416,7 +416,7 @@ public struct Tekkon {
       }
 
       // 這些按鍵在上文處理過了，就不要再回傳了。
-      if "cdfghjklmnpqtvw".contains(key) { strReturn = "" }
+      if "dfhjklmnpqtw".contains(key) { strReturn = "" }
 
       // 回傳結果是空字串的話，不要緊，因為上文已經代處理過分配過程了。
       return strReturn
@@ -433,16 +433,13 @@ public struct Tekkon {
       let incomingPhonabet = Phonabet(strReturn)
 
       switch key {
-        case "e": if semivowel.isEmpty { semivowel = "ㄧ" } else { vowel = "ㄝ" }
         case "a": if consonant.isEmpty { consonant = "ㄘ" } else { vowel = "ㄟ" }
+        case "d": if consonant.isEmpty { consonant = "ㄉ" } else { intonation = "ˊ" }
+        case "e": if semivowel.isEmpty { semivowel = "ㄧ" } else { vowel = "ㄝ" }
+        case "f": if consonant.isEmpty { consonant = "ㄈ" } else { intonation = "ˇ" }
         case "g": if consonant.isEmpty { consonant = "ㄍ" } else { vowel = "ㄜ" }
         case "h": if consonant.isEmpty { consonant = "ㄏ" } else { vowel = "ㄛ" }
         case "k": if consonant.isEmpty { consonant = "ㄎ" } else { vowel = "ㄤ" }
-        case "m": if consonant.isEmpty { consonant = "ㄇ" } else { vowel = "ㄢ" }
-        case "n": if consonant.isEmpty { consonant = "ㄋ" } else { vowel = "ㄣ" }
-        case "s": if consonant.isEmpty { consonant = "ㄙ" } else { intonation = "˙" }
-        case "d": if consonant.isEmpty { consonant = "ㄉ" } else { intonation = "ˊ" }
-        case "f": if consonant.isEmpty { consonant = "ㄈ" } else { intonation = "ˇ" }
         case "l":
           if value.isEmpty, !consonant.isEmpty, !semivowel.isEmpty {
             vowel = "ㄦ"
@@ -451,9 +448,11 @@ public struct Tekkon {
           } else {
             vowel = "ㄥ"
           }
+        case "m": if consonant.isEmpty { consonant = "ㄇ" } else { vowel = "ㄢ" }
+        case "n": if consonant.isEmpty { consonant = "ㄋ" } else { vowel = "ㄣ" }
+        case "s": if consonant.isEmpty { consonant = "ㄙ" } else { intonation = "˙" }
         default: break
       }
-
       // 處理「一個按鍵對應兩個聲母」的情形。
       if !consonant.isEmpty, incomingPhonabet.type == .semivowel {
         switch consonant {
@@ -489,7 +488,7 @@ public struct Tekkon {
       }
 
       // 這些按鍵在上文處理過了，就不要再回傳了。
-      if "acdefghjklmnsv".contains(key) { strReturn = "" }
+      if "adefghklmns".contains(key) { strReturn = "" }
 
       // 回傳結果是空的話，不要緊，因為上文已經代處理過分配過程了。
       return strReturn
