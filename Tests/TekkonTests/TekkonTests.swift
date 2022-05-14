@@ -81,16 +81,17 @@ final class TekkonTests: XCTestCase {
     XCTAssert(!toneMarkerIndicator)
 
     composer.receiveKey(fromString: "3")  // 上聲
-    XCTAssert(composer.value == "ㄉㄧㄠˇ")
+    XCTAssertEqual(composer.value, "ㄉㄧㄠˇ")
     composer.doBackSpace()
     composer.receiveKey(fromString: " ")  // 陰平
-    XCTAssert(composer.value == "ㄉㄧㄠ ")  // 這裡回傳的結果的陰平是空格
+    XCTAssertEqual(composer.value, "ㄉㄧㄠ ")  // 這裡回傳的結果的陰平是空格
 
     // Test Getting Displayed Composition
     XCTAssert(composer.getDisplayedComposition() == "ㄉㄧㄠ")  // 這裡回頭需要追加測試
+    XCTAssertEqual(composer.getDisplayedComposition(isHanyuPinyin: true), "diao1")  // 這裡回頭需要追加測試
 
     // Test Getting Real Composition
-    XCTAssert(composer.realComposition == "ㄉㄧㄠ")  // 這裡回傳的結果的陰平無空格
+    XCTAssertEqual(composer.realComposition, "ㄉㄧㄠ")  // 這裡回傳的結果的陰平無空格
 
     // Testing having tone markers
     toneMarkerIndicator = composer.hasToneMarker()
