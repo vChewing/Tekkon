@@ -86,12 +86,18 @@ final class TekkonTests: XCTestCase {
     composer.receiveKey(fromString: " ")  // 陰平
     XCTAssertEqual(composer.value, "ㄉㄧㄠ ")  // 這裡回傳的結果的陰平是空格
 
-    // Test Getting Displayed Composition
-    XCTAssert(composer.getDisplayedComposition() == "ㄉㄧㄠ")  // 這裡回頭需要追加測試
-    XCTAssertEqual(composer.getDisplayedComposition(isHanyuPinyin: true), "diao1")  // 這裡回頭需要追加測試
-
     // Test Getting Real Composition
     XCTAssertEqual(composer.realComposition, "ㄉㄧㄠ")  // 這裡回傳的結果的陰平無空格
+
+    // Test Getting Displayed Composition
+    XCTAssertEqual(composer.getComposition(), "ㄉㄧㄠ")
+    XCTAssertEqual(composer.getComposition(isHanyuPinyin: true), "diao1")
+    XCTAssertEqual(composer.getComposition(isHanyuPinyin: true, isTextBookStyle: true), "diāo")
+
+    // Test Tone 5
+    composer.receiveKey(fromString: "7")  // 輕聲
+    XCTAssertEqual(composer.getComposition(), "ㄉㄧㄠ˙")
+    XCTAssertEqual(composer.getComposition(isTextBookStyle: true), "˙ㄉㄧㄠ")
 
     // Testing having tone markers
     toneMarkerIndicator = composer.hasToneMarker()
