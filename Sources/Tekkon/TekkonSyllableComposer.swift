@@ -201,6 +201,7 @@ public struct Tekkon {
     }
 
     public mutating func receiveKey(fromString input: String = "") {
+      // 如果是諸如複合型注音排列的話，翻譯結果有可能為空，但翻譯過程已經處理好聲韻介調分配了。
       let translatedInput = translate(key: String(input))
       let thePhone: Phonabet = .init(translatedInput)
       switch thePhone.type {
@@ -213,6 +214,7 @@ public struct Tekkon {
     }
 
     public mutating func receiveKey(fromCharCode inputCharCode: UniChar = 0) {
+      // 如果是諸如複合型注音排列的話，翻譯結果有可能為空，但翻譯過程已經處理好聲韻介調分配了。
       if let scalar = UnicodeScalar(inputCharCode) {
         let translatedInput = translate(key: String(scalar))
         let thePhone: Phonabet = .init(translatedInput)
@@ -348,6 +350,10 @@ public struct Tekkon {
         }
       }
 
+      // 這些按鍵在上文處理過了，就不要再回傳了。
+      if "cdfghjklmnpqtvw".contains(key) { strReturn = "" }
+
+      // 回傳結果是空的話，不要緊，因為上文已經代處理過分配過程了。
       return strReturn
     }
 
@@ -368,14 +374,20 @@ public struct Tekkon {
         case "s": if consonant.isEmpty { consonant = "ㄙ" } else { intonation = "˙" }
         case "d": if consonant.isEmpty { consonant = "ㄉ" } else { intonation = "ˊ" }
         case "f": if consonant.isEmpty { consonant = "ㄈ" } else { intonation = "ˇ" }
-        case "l": if value.isEmpty { vowel = "ㄦ" } else if consonant.isEmpty { consonant = "ㄌ" } else { vowel = "ㄥ" }
-        case "j": if !consonant.isEmpty { intonation = "ˋ" }
+        case "l": if value.isEmpty && !consonant.isEmpty && !semivowel.isEmpty { vowel = "ㄦ" } else if consonant.isEmpty { consonant = "ㄌ" } else { vowel = "ㄥ" }
         default: break
       }
 
       // 處理「一個按鍵對應兩個聲母」的情形。
       if !consonant.isEmpty, incomingPhonabet.type == .semivowel {
         switch consonant {
+          case "ㄍ":  // 許氏鍵盤應該也需要這個自動糾正
+            switch incomingPhonabet {
+              case "ㄧ": consonant = "ㄑ"  // ㄑㄧ
+              case "ㄨ": consonant = "ㄍ"  // ㄍㄨ
+              case "ㄩ": consonant = "ㄑ"  // ㄑㄩ
+              default: break
+            }
           case "ㄓ":
             if intonation.isEmpty {
               switch incomingPhonabet {
@@ -396,6 +408,14 @@ public struct Tekkon {
         }
       }
 
+      if key == "j" {  // 對該按鍵作為調號的處理得放在最後
+        if !consonant.isEmpty { intonation = "ˋ" }
+      }
+
+      // 這些按鍵在上文處理過了，就不要再回傳了。
+      if "acdefghjklmnsv".contains(key) { strReturn = "" }
+
+      // 回傳結果是空的話，不要緊，因為上文已經代處理過分配過程了。
       return strReturn
     }
 
