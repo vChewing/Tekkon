@@ -204,11 +204,9 @@ public struct Tekkon {
     /// 將來在做漢語拼音功能時、這裡得回傳別的東西。
     public func getDisplayedComposition(isHanyuPinyin: Bool = false) -> String {
       if isHanyuPinyin {
-        // 在這裡寫把 value 轉成拼音的步驟。不要忘記將轉換結果 return 處理喔。
-        var valHanyuPinyin = value
-        valHanyuPinyin = Tekkon.cnvPhonaToHanyuPinyin(target: valHanyuPinyin)
-        return valHanyuPinyin
-      }
+        // 把 value 轉成拼音且遞交
+        return Tekkon.cnvPhonaToHanyuPinyin(target: value)
+      }  // 按照原樣遞交注音
       return value.replacingOccurrences(of: " ", with: "")
     }
 

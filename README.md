@@ -8,5 +8,270 @@ Tekkon Engine is a module made for processing combo-composition of stroke-based 
 
 Hanyu Pinyin support is currently not available yet.
 
+## 使用說明
+
+### §1. 初期化
+
+在你的 ctlInputMethod (InputMethodController) 或者 KeyHandler 內初期化一份 Tekkon.Composer 注拼槽副本（這裡將該副本命名為「`_composer`」）。由於 Tekkon.Composer 的型別是 Struct 型別，所以其副本必須為變數（var），否則無法自我 mutate。
+
+以 KeyHandler 為例：
+```swift
+class KeyHandler: NSObject {
+  // 先設定好變數
+  var _composer: Tekkon.Composer = .init()
+  ...
+}
+```
+
+以 ctlInputMethod 為例：
+```swift
+@objc(ctlInputMethod)  // 根據 info.plist 內的情況來確定型別的命名
+class ctlInputMethod: IMKInputController {
+  // 先設定好變數
+  var _composer: Tekkon.Composer = .init()
+  ...
+}
+```
+
+
+由於 Swift 會在某個大副本（KeyHandler 或者 ctlInputMethod 副本）被銷毀的時候自動銷毀其中的全部副本，所以 Tekkon.Composer 的副本初期化沒必要寫在 init() 當中。但你很可能會想在 init() 時指定 Tekkon.Composer 所使用的注音排列（是大千？還是倚天傳統？還是神通？等）。
+
+這裡就需要在 _composer 這個副本所在的型別當中額外寫一個過程函數。
+
+下文範例 `ensureParser()` 是這樣：假設 mgrPrefs 用來管理 UserDefaults 資料，那麼就從裡面取資料來判定 _composer 的注音排列分析器究竟該選哪個。
+
+```swift
+  // MARK: - Extracted methods and functions (Tekkon).
+
+  func ensureParser() {
+    switch mgrPrefs.mandarinParser {
+      case MandarinParser.ofStandard.rawValue:
+        _composer.ensureParser(arrange: .ofDachen)  // 大千
+      case MandarinParser.ofEten.rawValue:
+        _composer.ensureParser(arrange: .ofEten)  // 倚天傳統
+      case MandarinParser.ofHsu.rawValue:
+        _composer.ensureParser(arrange: .ofHsu)  // 許氏國音
+      case MandarinParser.ofEten26.rawValue:
+        _composer.ensureParser(arrange: .ofEten26)  // 倚天忘形26鍵
+      case MandarinParser.ofIBM.rawValue:
+        _composer.ensureParser(arrange: .ofIBM)  // IBM
+      case MandarinParser.ofMiTAC.rawValue:
+        _composer.ensureParser(arrange: .ofMiTAC)  // 神通
+      case MandarinParser.ofFakeSeigyou.rawValue:
+        _composer.ensureParser(arrange: .ofFakeSeigyou)  // 偽精業
+      default:
+        _composer.ensureParser(arrange: .ofDachen)  // 預設情況下按照 mgrPrefs 內定義預設值來處理
+        mgrPrefs.mandarinParser = MandarinParser.ofStandard.rawValue
+    }
+    _composer.clear()
+  }
+```
+
+然後你可以在想用這個函數的時候用。比如說在 _composer 這個副本所在的型別的 `init()` 內的 super.init() 後面寫上步驟即可：
+
+```swift
+  override init() {
+    ...
+    super.init()
+    ensureParser()
+    ...
+  }
+```
+
+或者你可以在最開始初始化 _composer 副本的時候加上參數，也就是寫成這樣（比如說大千佈局）：
+
+```swift
+  var _composer: Tekkon.Composer = .init(arrange: .ofDachen)
+```
+
+總之用法有很多。這裡不再一一列舉。
+
+### §2. 函數介紹與按鍵訊號處理
+
+#### // 1. 獲取注拼槽內現有的注音拼寫內容
+
+這裡分用途說明一下，請結合 TekkonTests.swift 理解。
+
+首先，InputMethodKit 的 updateClientComposingBuffer() 當中可以使用 _composer 的 getDisplayedComposition() 函數。如果你想讓組字緩衝區內顯示拼音而不是注音的話，可以這樣改參數：
+
+```swift
+let XXX = getDisplayedComposition(isHanyuPinyin: true)
+```
+
+那原始資料值呢？
+
+雖然 _composer.value 可以拿到原始資料值，但是這個資料值裡面的陰平聲調是以一個西文半形空格來體現的、不太適用於某些場合。這時可以使用 _composer.realComposition 來獲取經過去空格處理的注音：假設說一款注音輸入法的詞庫索引是注音、且陰平聲調是「""」真空字串的話，就可以用 _composer.realComposition 來獲取注音。
+
+有些輸入法的詞庫的索引不是注音、而是漢語拼音（比如 RIME），此時恐怕需要做注音轉拼音的處理。這時，恐怕就需要您自己新增一個動態變數：
+
+```swift
+    public var realCompositionInHanyuPinyin: String {
+      Tekkon.cnvPhonaToHanyuPinyin(target: valHanyuPinyin)
+    }
+```
+
+各位可以自行修改一下 TekkonTests.swift 試試看，比如說在其檔案內新增一個 Extension 與測試函數：
+```swift
+import XCTest
+
+@testable import Tekkon
+
+extension Tekkon.Composer {
+  public var realCompositionInHanyuPinyin: String {
+    Tekkon.cnvPhonaToHanyuPinyin(target: value)
+  }
+}
+
+final class TekkonTests: XCTestCase {
+  func 測試某位樂壇歌王常用的口頭禪() throws {
+    var composer = Tekkon.Composer(arrange: .ofDachen)
+
+    // Test Key Receiving
+    composer.receiveKey(fromCharCode: 0x0032)  // 2, ㄉ
+    composer.receiveKey(fromString: "u")  // ㄧ
+    composer.receiveKey(fromString: "l")  // ㄠ
+    composer.receiveKey(fromString: "3")  // 上聲
+    XCTAssertEqual(composer.realCompositionInHanyuPinyin, "diao3")
+  }
+...
+```
+
+#### // 2. 訊號處理
+
+無論是 KeyHandler 還是 ctlInputMethod 都得要處理被傳入的 NSEvent 當中的 charCode 訊號。
+
+比如 ctlInputMethod 內：
+```swift
+func handleInputText(_ inputText: String?, key keyCode: Int, modifiers flags: Int, client: Any?) -> Bool {
+...
+}
+```
+
+或者 KeyHandler 內：
+```swift
+extension KeyHandler {
+  func handle(
+    input: InputHandler,
+    state: InputState,
+    stateCallback: @escaping (InputState) -> Void,
+    errorCallback: @escaping () -> Void
+  ) -> Bool {
+    let charCode: UniChar = input.charCode
+...
+}
+```
+
+但對注拼槽的處理都是一樣的。
+
+這裡分享一下小麥注音輸入法與威注音輸入法在 KeyHandler 內對 _composer 的用法。
+
+如果收到的按鍵訊號是 BackSpace 的話，可以用 _composer.doBackSpace() 來移除注拼槽內最前方的元素。
+
+鐵恨引擎的注拼槽 Composer 型別內的函數都有對應的詳細註解說明。這裡不再贅述。
+
+
+
+> (這裡的範例取自威注音，只用作演示用途。威注音實際的 codebase 可能會有出入。請留意這一段內的漢語註解。)
+> 
+> (小麥注音 2.2 沒在用鐵恨引擎，而是在用 OVMandarin 引擎與 Objective-Cpp，所以語法會有一些出入。)
+> 
+> (不是所有輸入法都有狀態管理引擎，請根據各自專案的實際情況來結合理解這段程式碼。)
+
+```swift
+// MARK: Handle BPMF Keys.
+
+var keyConsumedByReading = false
+let skipPhoneticHandling = input.isReservedKey || input.isControlHold || input.isOptionHold
+
+// See if Phonetic reading is valid.
+// 這裡 inputValidityCheck() 是讓 _composer 檢查 charCode 這個 UniChar 是否是合法的注音輸入。
+// 如果是的話，就將這次傳入的這個按鍵訊號塞入 _composer 內且標記為「keyConsumedByReading」。
+// 函數 _composer.receiveKey() 可以既接收 String 又接收 UniChar。
+if !skipPhoneticHandling && _composer.inputValidityCheck(key: charCode) {
+  _composer.receiveKey(fromCharCode: charCode)
+  keyConsumedByReading = true
+
+  // If we have a tone marker, we have to insert the reading to the
+  // builder in other words, if we don't have a tone marker, we just
+  // update the composing buffer.
+  // 沒有調號的話，只需要 updateClientComposingBuffer() 且終止處理（return true）即可。
+  // 有調號的話，則不需要這樣處理，轉而繼續在此之後的處理。
+  let composeReading = _composer.hasToneMarker()
+  if !composeReading {
+    stateCallback(buildInputtingState())
+    return true
+  }
+}
+
+// 這裡不需要做排他性判斷。
+var composeReading = _composer.hasToneMarker()
+
+// See if we have composition if Enter/Space is hit and buffer is not empty.
+// We use "|=" conditioning so that the tone marker key is also taken into account.
+// However, Swift does not support "|=".
+// 如果當前的按鍵是 Enter 或 Space 的話，這時就可以取出 _composer 內的注音來做檢查了。
+// 來看看詞庫內到底有沒有對應的讀音索引。這裡用了類似「|=」的判斷處理方式。
+composeReading = composeReading || (!_composer.isEmpty && (input.isSpace || input.isEnter))
+if composeReading {  // 符合按鍵組合條件
+  let reading = _composer.getRealComposition()  // 拿取用來進行索引檢索用的注音
+  // 如果輸入法的辭典索引是漢語拼音的話，要注意上一行拿到的內容得是漢語拼音。
+
+  // See whether we have a unigram for this...
+  // 向語言模型詢問是否有對應的記錄
+  if !ifLangModelHasUnigrams(forKey: reading) {  // 如果沒有的話
+    IME.prtDebugIntel("B49C0979：語彙庫內無「\(reading)」的匹配記錄。")
+    errorCallback()  // 向狀態管理引擎回呼一個錯誤狀態
+    _composer.clear()  // 清空注拼槽的內容
+    // 根據「天權星引擎 (威注音) 或 Gramambular (小麥) 的組字器是否為空」來判定回呼哪一種狀態
+    stateCallback(
+      (getBuilderLength() == 0) ? InputState.EmptyIgnoringPreviousState() : buildInputtingState())
+    return true  // 向 IMK 報告說這個按鍵訊號已經被輸入法攔截處理了
+  }
+
+  // ... and insert it into the grid...
+  // 將該讀音插入至天權星（或 Gramambular）組字器內的軌格當中
+  insertReadingToBuilderAtCursor(reading: reading)
+
+  // ... then walk the grid...
+  // 讓組字器反爬軌格
+  let poppedText = popOverflowComposingTextAndWalk()
+
+  // ... get and tweak override model suggestion if possible...
+  // 看看半衰記憶模組是否會對目前的狀態給出自動選字建議
+  dealWithOverrideModelSuggestions()
+
+  // ... then update the text.
+  // 之後就是更新組字區了。先清空注拼槽的內容。
+  _composer.clear()
+  // 再以回呼組字狀態的方式來執行updateClientComposingBuffer()
+  let inputting = buildInputtingState()
+  inputting.poppedText = poppedText
+  stateCallback(inputting)
+
+  return true  // 向 IMK 報告說這個按鍵訊號已經被輸入法攔截處理了
+}
+```
+
+## 著作權 (Credits)
+
 - (c) 2022 and onwards The vChewing Project (MIT-NTL License).
 	- Swift programmer: Shiki Suen
+
+$ EOF.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
