@@ -201,13 +201,23 @@ public struct Tekkon {
     }
 
     /// 與 value 類似。這個函數就是用來決定輸入法組字區內顯示的注音/拼音內容。
-    /// 將來在做漢語拼音功能時、這裡得回傳別的東西。
-    public func getDisplayedComposition(isHanyuPinyin: Bool = false) -> String {
-      if isHanyuPinyin {
-        // 把 value 轉成拼音且遞交
-        return Tekkon.cnvPhonaToHanyuPinyin(target: value)
-      }  // 按照原樣遞交注音
-      return value.replacingOccurrences(of: " ", with: "")
+    /// 但可以指定是否輸出教科書格式（拼音的調號在字母上方、注音的輕聲寫在左側）。
+    public func getComposition(isHanyuPinyin: Bool = false, isTextBookStyle: Bool = false) -> String {
+      switch isHanyuPinyin {
+        case false:
+          var valReturnZhuyin = value.replacingOccurrences(of: " ", with: "")
+          if isTextBookStyle, valReturnZhuyin.contains("˙") {
+            valReturnZhuyin = String(valReturnZhuyin.dropLast())
+            valReturnZhuyin.insert("˙", at: valReturnZhuyin.startIndex)
+          }
+          return valReturnZhuyin
+        case true:
+          var valReturnPinyin = Tekkon.cnvPhonaToHanyuPinyin(target: value)
+          if isTextBookStyle {
+            valReturnPinyin = Tekkon.cnvHanyuPinyinToTextbookStyle(target: valReturnPinyin)
+          }
+          return valReturnPinyin
+      }
     }
 
     /// 注拼槽內容是否為空。
@@ -576,15 +586,23 @@ public struct Tekkon {
   /// - Parameters:
   ///   - target: 傳入的 String 對象物件。
   static func cnvPhonaToHanyuPinyin(target: String) -> String {
-    var tagetConverted = target
+    var targetConverted = target
     for pair in arrPhonaToHanyuPinyin {
-      tagetConverted = tagetConverted.replacingOccurrences(of: pair[0], with: pair[1])
+      targetConverted = targetConverted.replacingOccurrences(of: pair[0], with: pair[1])
     }
-    return tagetConverted
+    return targetConverted
   }
 
-  /// 原始轉換對照表資料貯存專用佇列
-  static let arrPhonaToHanyuPinyin = [
+  static func cnvHanyuPinyinToTextbookStyle(target: String) -> String {
+    var targetConverted = target
+    for pair in arrHanyuPinyinTextbookStyleConversionTable {
+      targetConverted = targetConverted.replacingOccurrences(of: pair[1], with: pair[0])
+    }
+    return targetConverted
+  }
+
+  /// 原始轉換對照表資料貯存專用佇列（數字標調格式）
+  static let arrPhonaToHanyuPinyin = [  // 排序很重要。先處理最長的，再處理短的。不然會出亂子。
     [" ", "1"], ["ˊ", "2"], ["ˇ", "3"], ["ˋ", "4"], ["˙", "5"], ["ㄔㄨㄤ", "chuang"], ["ㄕㄨㄤ", "shuang"],
     ["ㄓㄨㄤ", "zhuang"], ["ㄔㄨㄥ", "chong"], ["ㄔㄨㄞ", "chuai"], ["ㄔㄨㄢ", "chuan"], ["ㄍㄨㄤ", "guang"], ["ㄏㄨㄤ", "huang"],
     ["ㄐㄧㄤ", "jiang"], ["ㄐㄩㄥ", "jiong"], ["ㄎㄨㄤ", "kuang"], ["ㄌㄧㄤ", "liang"], ["ㄋㄧㄤ", "niang"], ["ㄑㄧㄤ", "qiang"],
@@ -649,6 +667,25 @@ public struct Tekkon {
     ["ㄔ", "chi"], ["ㄕ", "shi"], ["ㄖ", "ri"], ["ㄗ", "zi"], ["ㄘ", "ci"], ["ㄙ", "si"], ["ㄚ", "a"], ["ㄛ", "o"], ["ㄜ", "e"],
     ["ㄝ", "eh"], ["ㄞ", "ai"], ["ㄟ", "ei"], ["ㄠ", "ao"], ["ㄡ", "ou"], ["ㄢ", "an"], ["ㄣ", "en"], ["ㄤ", "ang"],
     ["ㄥ", "eng"], ["ㄦ", "er"], ["ㄧ", "yi"], ["ㄨ", "wu"], ["ㄩ", "yu"],
+  ]
+
+  /// 漢語拼音韻母轉換對照表資料貯存專用佇列
+  static let arrHanyuPinyinTextbookStyleConversionTable = [  // 排序很重要。先處理最長的，再處理短的。不然會出亂子。
+    ["iāo", "iao1"], ["iáo", "iao2"], ["iǎo", "iao3"], ["iào", "iao4"], ["uāi", "uai1"], ["uái", "uai2"],
+    ["uǎi", "uai3"], ["uài", "uai4"], ["āi", "ai1"], ["ái", "ai2"], ["ǎi", "ai3"], ["ài", "ai4"], ["ai", "ai5"],
+    ["āo", "ao1"], ["áo", "ao2"], ["ǎo", "ao3"], ["ào", "ao4"], ["ao", "ao5"], ["ēi", "ei1"], ["éi", "ei2"],
+    ["ěi", "ei3"], ["èi", "ei4"], ["ei", "ei5"], ["ēr", "er1"], ["ér", "er2"], ["ěr", "er3"], ["èr", "er4"],
+    ["er", "er5"], ["iā", "ia1"], ["iá", "ia2"], ["iǎ", "ia3"], ["ià", "ia4"], ["iē", "ie1"], ["ié", "ie2"],
+    ["iě", "ie3"], ["iè", "ie4"], ["ie", "ie5"], ["iō", "io1"], ["ió", "io2"], ["iǒ", "io3"], ["iò", "io4"],
+    ["iū", "iu1"], ["iú", "iu2"], ["iǔ", "iu3"], ["iù", "iu4"], ["ōu", "ou1"], ["óu", "ou2"], ["ǒu", "ou3"],
+    ["òu", "ou4"], ["ou", "ou5"], ["uā", "ua1"], ["uá", "ua2"], ["uǎ", "ua3"], ["uà", "ua4"], ["ua", "ua5"],
+    ["uē", "ue1"], ["ué", "ue2"], ["uě", "ue3"], ["uè", "ue4"], ["uī", "ui1"], ["uí", "ui2"], ["uǐ", "ui3"],
+    ["uì", "ui4"], ["uō", "uo1"], ["uó", "uo2"], ["uǒ", "uo3"], ["uò", "uo4"], ["uo", "uo5"], ["üá", "va2"],
+    ["üǎ", "va3"], ["üē", "ve1"], ["üě", "ve3"], ["üè", "ve4"], ["ā", "a1"], ["á", "a2"], ["ǎ", "a3"], ["à", "a4"],
+    ["a", "a5"], ["ē", "e1"], ["ế", "e2"], ["é", "e2"], ["êˇ", "e3"], ["ě", "e3"], ["ề", "e4"], ["è", "e4"],
+    ["e", "e5"], ["ê", "e5"], ["ī", "i1"], ["í", "i2"], ["ǐ", "i3"], ["ì", "i4"], ["i", "i5"], ["ō", "o1"],
+    ["ó", "o2"], ["ǒ", "o3"], ["ò", "o4"], ["o", "o5"], ["ū", "u1"], ["ú", "u2"], ["ǔ", "u3"], ["ù", "u4"],
+    ["ǖ", "v1"], ["ǘ", "v2"], ["ǚ", "v3"], ["ǜ", "v4"],
   ]
 
   // MARK: - Maps for Keyboard-to-Phonabet parsers
