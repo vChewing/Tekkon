@@ -2,11 +2,11 @@
 
 鐵恨引擎是用來處理注音輸入法並擊行為的一個模組。該倉庫乃威注音專案的弒神行動（Operation Longinus）的一部分。
 
-目前暫時缺乏漢語拼音支援。
+目前暫時缺乏漢語拼音輸入支援（僅支援輸出）。
 
 Tekkon Engine is a module made for processing combo-composition of stroke-based Mandarin Chinese phonetics (i.e. Zhuyin / Bopomofo). This repository is part of Operation Longinus of The vChewing Project.
 
-Hanyu Pinyin support is currently not available yet.
+Hanyu Pinyin input support is currently not available yet (only output functions are available).
 
 ## 使用說明
 
