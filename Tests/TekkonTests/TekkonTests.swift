@@ -84,13 +84,13 @@ final class TekkonTests: XCTestCase {
     XCTAssert(composer.value == "ㄉㄧㄠˇ")
     composer.doBackSpace()
     composer.receiveKey(fromString: " ")  // 陰平
-    XCTAssert(composer.value == "ㄉㄧㄠ")
+    XCTAssert(composer.value == "ㄉㄧㄠ ")  // 這裡回傳的結果的陰平是空格
 
     // Test Getting Displayed Composition
-    XCTAssert(composer.getDisplayedComposition() == "ㄉㄧㄠ")
+    XCTAssert(composer.getDisplayedComposition() == "ㄉㄧㄠ")  // 這裡回頭需要追加測試
 
     // Test Getting Real Composition
-    XCTAssert(composer.getRealComposition() == "ㄉㄧㄠ")
+    XCTAssert(composer.realComposition == "ㄉㄧㄠ")  // 這裡回傳的結果的陰平無空格
 
     // Testing having tone markers
     toneMarkerIndicator = composer.hasToneMarker()

@@ -28,14 +28,16 @@ import Foundation
 public struct Tekkon {
   // MARK: - Static Constants and Basic Enums
 
+  /// 定義注音符號的種類
   public enum PhoneType: Int {
     case null = 0  // 假
     case consonant = 1  // 聲
-    case semivowel = 2  // 韻
-    case vowel = 3  // 介
+    case semivowel = 2  // 介
+    case vowel = 3  // 韻
     case intonation = 4  // 調
   }
 
+  /// 定義注音排列的類型
   public enum MandarinParser: Int {
     case ofDachen = 0
     case ofEten = 1
@@ -45,7 +47,7 @@ public struct Tekkon {
     case ofMiTAC = 5
     case ofFakeSeigyou = 6
     case ofSeigyou = 7
-    case ofHanyuPinyin = 10
+    case ofHanyuPinyin = 10  // 目前暫時沒有漢語拼音支援
 
     var name: String {
       switch self {
@@ -71,51 +73,74 @@ public struct Tekkon {
     }
   }
 
+  /// 引擎僅接受這些記號作為聲母
   public static let allowedConsonants = [
     "ㄅ", "ㄆ", "ㄇ", "ㄈ", "ㄉ", "ㄊ", "ㄋ", "ㄌ",
     "ㄍ", "ㄎ", "ㄏ", "ㄐ", "ㄑ", "ㄒ",
     "ㄓ", "ㄔ", "ㄕ", "ㄖ", "ㄗ", "ㄘ", "ㄙ",
   ]
 
+  /// 引擎僅接受這些記號作為介母
   public static let allowedsemivowels = ["ㄧ", "ㄨ", "ㄩ"]
 
+  /// 引擎僅接受這些記號作為韻母
   public static let allowedVowels = [
     "ㄚ", "ㄛ", "ㄜ", "ㄝ", "ㄞ", "ㄟ",
     "ㄠ", "ㄡ", "ㄢ", "ㄣ", "ㄤ", "ㄥ", "ㄦ",
   ]
 
+  /// 引擎僅接受這些記號作為聲調
   public static let allowedIntonations = [" ", "ˊ", "ˇ", "ˋ", "˙"]
 
+  /// 引擎僅接受這些記號作為注音（聲介韻調四個集合加起來）
   public static var allowedPhonabets: [String] {
     allowedConsonants + allowedsemivowels + allowedVowels + allowedIntonations
   }
 
   // MARK: - Phonabet Structure
 
+  /// 注音符號型別。本身與字串差不多，但卻只能被設定成一個注音符號字符。
+  /// 然後會根據自身的 value 的內容值自動計算自身的 PhoneType 類型（聲介韻調假）。
+  /// 如果遇到被設為多個字符、或者字符不對的情況的話，value 會被清空、PhoneType 會變成 null。
+  /// 賦值時最好直接重新 init 且一直用 let 來初期化 Phonabet。
+  /// 其實 value 對外只讀，對內的話另有 valueStorage 代為存儲內容。這樣比較安全一些。
   @frozen public struct Phonabet: Equatable, Hashable, ExpressibleByStringLiteral {
     public var type: PhoneType = .null
-    public var value: String = ""
+    private var valueStorage = ""
+    public var value: String { valueStorage }
     public var isEmpty: Bool {
       value.isEmpty
     }
 
+    /// 初期化，會根據傳入的 input 字串參數來自動判定自身的 PhoneType 類型屬性值。
     public init(_ input: String = "") {
       if !input.isEmpty {
         if allowedPhonabets.contains(String(input.reversed()[0])) {
-          value = String(input.reversed()[0])
-          if Tekkon.allowedConsonants.contains(value) { type = .consonant }
-          if Tekkon.allowedsemivowels.contains(value) { type = .semivowel }
-          if Tekkon.allowedVowels.contains(value) { type = .vowel }
-          if Tekkon.allowedIntonations.contains(value) { type = .intonation }
+          valueStorage = String(input.reversed()[0])
+          if Tekkon.allowedConsonants.contains(value) {
+            type = .consonant
+          } else if Tekkon.allowedsemivowels.contains(value) {
+            type = .semivowel
+          } else if Tekkon.allowedVowels.contains(value) {
+            type = .vowel
+          } else if Tekkon.allowedIntonations.contains(value) {
+            type = .intonation
+          } else {
+            type = .null
+            valueStorage = ""
+          }
         }
       }
     }
 
+    /// 自我清空內容。
     public mutating func clear() {
-      value = ""
+      valueStorage = ""
     }
 
     // MARK: - Misc Definitions
+
+    /// 這些內容用來滿足 "Equatable, Hashable, ExpressibleByStringLiteral" 需求。
 
     public static func == (lhs: Phonabet, rhs: Phonabet) -> Bool {
       lhs.value == rhs.value
@@ -141,25 +166,65 @@ public struct Tekkon {
 
   // MARK: - Syllable Composer
 
+  /// 注音並擊處理的對外介面以注拼槽（Syllable Composer）的形式存在。
+  /// 使用時需要單獨初期化為一個副本變數（因為是 Struct 所以必須得是變數）。
+  /// 注拼槽只有四格：聲、介、韻、調。
+  /// @--DISCUSSION--@
+  /// 因為是 String Literal，所以初期化時可以藉由 @input 參數指定初期已經傳入的按鍵訊號。
+  /// 還可以在初期化時藉由 @arrange 參數來指定注音排列（預設為「.ofDachen」大千佈局）。
   @frozen public struct Composer: Equatable, Hashable, ExpressibleByStringLiteral {
+    /// 聲母。
     public var consonant: Phonabet = ""
+
+    /// 介母。
     public var semivowel: Phonabet = ""
+
+    /// 韻母。
     public var vowel: Phonabet = ""
+
+    /// 聲調。
     public var intonation: Phonabet = ""
+
+    /// 注音排列種類。預設情況下是大千排列（Windows / macOS 預設注音排列）。
     public var parser: MandarinParser = .ofDachen
+
+    /// 內容值，會直接按照正確的順序拼裝自己的聲介韻調內容、再回傳。
+    /// 注意：直接取這個參數的內容的話，陰平聲調會成為一個空格。
+    /// 如果是要取不帶空格的注音的話，請使用「.realComposition」而非「.value」。
     public var value: String {
-      consonant.value + semivowel.value + vowel.value + intonation.value.replacingOccurrences(of: " ", with: "")
+      consonant.value + semivowel.value + vowel.value + intonation.value
     }
 
+    /// 這是專門用來「生成用以進行詞庫檢索的 Key」的函數。
+    public var realComposition: String {
+      value.replacingOccurrences(of: " ", with: "")
+    }
+
+    /// 與 value 類似。這個函數就是用來決定輸入法組字區內顯示的注音/拼音內容。
+    /// 將來在做漢語拼音功能時、這裡得回傳別的東西。
+    public func getDisplayedComposition(isHanyuPinyin: Bool = false) -> String {
+      if isHanyuPinyin {
+        // 在這裡寫把 value 轉成拼音的步驟。不要忘記將轉換結果 return 處理喔。
+      }
+      return value.replacingOccurrences(of: " ", with: "")
+    }
+
+    /// 注拼槽內容是否為空。
     public var isEmpty: Bool {
       intonation.isEmpty && vowel.isEmpty && semivowel.isEmpty && consonant.isEmpty
     }
 
+    // MARK: 注拼槽對外處理函數
+
+    /// 初期化一個新的注拼槽。可以藉由 @input 參數指定初期已經傳入的按鍵訊號。
+    /// 還可以在初期化時藉由 @arrange 參數來指定注音排列（預設為「.ofDachen」大千佈局）。
     public init(_ input: String = "", arrange parser: MandarinParser = .ofDachen) {
       receiveKey(fromString: input)
       ensureParser(arrange: parser)
     }
 
+    /// 清除自身的內容，就是將聲介韻調全部清空。
+    /// 嚴格而言，「注音排列」這個屬性沒有需要清空的概念，只能用 ensureParser 參數變更之。
     public mutating func clear() {
       consonant.clear()
       semivowel.clear()
@@ -170,9 +235,10 @@ public struct Tekkon {
     // MARK: - Public Functions
 
     /// 用於檢測「某個輸入字符訊號的合規性」的函數。
-    /// Phonabet 是一個特殊的 String 類 Struct，
-    /// 只會接受正確的注音符號資料、且根據其類型自動回報其類型。
-    /// 類型只有「聲、韻、介、調」這四類。
+    /// @--DISCUSSION--@
+    /// 注意：回傳結果會受到當前注音排列 parser 屬性的影響。
+    /// - Parameters:
+    ///   - key: 傳入的 UniChar 內容。
     public func inputValidityCheck(key inputKey: UniChar = 0) -> Bool {
       if let scalar = UnicodeScalar(inputKey) {
         let input = String(scalar)
@@ -200,8 +266,13 @@ public struct Tekkon {
       return false
     }
 
+    /// 接受傳入的按鍵訊號時的處理，處理對象為 String。
+    /// 另有同名函數可處理 UniChar 訊號。
+    /// @--DISCUSSION--@
+    /// 如果是諸如複合型注音排列的話，翻譯結果有可能為空，但翻譯過程已經處理好聲介韻調分配了。
+    /// - Parameters:
+    ///   - fromString: 傳入的 String 內容。
     public mutating func receiveKey(fromString input: String = "") {
-      // 如果是諸如複合型注音排列的話，翻譯結果有可能為空，但翻譯過程已經處理好聲韻介調分配了。
       let translatedInput = translate(key: String(input))
       let thePhone: Phonabet = .init(translatedInput)
       switch thePhone.type {
@@ -213,33 +284,22 @@ public struct Tekkon {
       }
     }
 
+    /// 接受傳入的按鍵訊號時的處理，處理對象為 UniChar。
+    /// 其實也就是先將 UniChar 轉為 String 再交給某個同名異參的函數來處理而已。
+    /// @--DISCUSSION--@
+    /// 如果是諸如複合型注音排列的話，翻譯結果有可能為空，但翻譯過程已經處理好聲介韻調分配了。
+    /// - Parameters:
+    ///   - fromCharCode: 傳入的 UniChar 內容。
     public mutating func receiveKey(fromCharCode inputCharCode: UniChar = 0) {
-      // 如果是諸如複合型注音排列的話，翻譯結果有可能為空，但翻譯過程已經處理好聲韻介調分配了。
       if let scalar = UnicodeScalar(inputCharCode) {
-        let translatedInput = translate(key: String(scalar))
-        let thePhone: Phonabet = .init(translatedInput)
-        switch thePhone.type {
-          case .consonant: consonant = thePhone
-          case .semivowel: semivowel = thePhone
-          case .vowel: vowel = thePhone
-          case .intonation: intonation = thePhone
-          default: break
-        }
+        receiveKey(fromString: String(scalar))
       }
     }
 
-    /// 本來這個函數是不需要的，但將來在做漢語拼音功能時、這裡得回傳別的東西。
-    /// 也就是說，這個函數就是用來決定輸入法組字區內顯示的注音/拼音內容。
-    public func getDisplayedComposition() -> String {
-      value
-    }
-
-    /// 這是專門用來「生成用以進行詞庫檢索的 Key」的函數。
-    public func getRealComposition() -> String {
-      value
-    }
-
     /// 專門用來響應使用者摁下 BackSpace 按鍵時的行為。
+    /// 刪除順序：調、韻、介、聲。
+    /// @--DISCUSSION--@
+    /// 基本上就是按順序從游標前方開始往後刪。
     public mutating func doBackSpace() {
       if !intonation.isEmpty {
         intonation.clear()
@@ -252,7 +312,9 @@ public struct Tekkon {
       }
     }
 
-    /// 用來檢測是否有調號
+    /// 用來檢測是否有調號的函數，預設情況下不判定聲調以外的內容的存無。
+    /// - Parameters:
+    ///   - withNothingElse: 追加判定「槽內是否僅有調號」。
     public func hasToneMarker(withNothingElse: Bool = false) -> Bool {
       if !withNothingElse {
         return !intonation.isEmpty
@@ -260,23 +322,22 @@ public struct Tekkon {
       return !intonation.isEmpty && vowel.isEmpty && semivowel.isEmpty && consonant.isEmpty
     }
 
-    /// 當接收按鍵輸入時的處理。本來 Phonabet 就會自動使輸入的無效數值被忽略掉。
-    /// 然後再根據 Phonabet 初期化後自身的 type 屬性來決定「聲、韻、介、調」到底哪個該更新。
-    public mutating func receiveCharCode(_ inputKey: UniChar = 0) {
-      // TODO: 在這裡補上鍵盤轉換工序
-      if let scalar = UnicodeScalar(inputKey) {
-        let input = String(scalar)
-        receiveKey(fromString: input)
-      }
-    }
-
-    // 設定該 Composer 處於何種鍵盤排列分析模式
+    // 設定該 Composer 處於何種鍵盤排列分析模式。
+    /// - Parameters:
+    ///   - arrange: 給該注拼槽指定注音排列。
     public mutating func ensureParser(arrange: MandarinParser = .ofDachen) {
       parser = arrange
     }
 
     // MARK: - Parser Processings
 
+    // 注拼槽對內處理用函數都在這一小節。
+
+    /// 根據目前的注音排列設定來翻譯傳入的 String 訊號。
+    /// @--DISCUSSION--@
+    /// 倚天或許氏鍵盤的處理函數會將分配過程代為處理過，此時回傳結果為空字串。
+    /// - Parameters:
+    ///   - key: 傳入的 String 訊號。
     mutating func translate(key: String = "") -> String {
       switch parser {
         case .ofDachen:
@@ -301,6 +362,10 @@ public struct Tekkon {
     }
 
     /// 倚天忘形注音排列比較麻煩，需要單獨處理。
+    /// @--DISCUSSION--@
+    /// 回傳結果是空字串的話，不要緊，因為該函數內部已經處理過分配過程了。
+    /// - Parameters:
+    ///   - key: 傳入的 String 訊號。
     mutating func handleEten26(key: String = "") -> String {
       var strReturn = ""
       strReturn = Tekkon.mapEten26StaticKeys[key] ?? ""
@@ -353,11 +418,15 @@ public struct Tekkon {
       // 這些按鍵在上文處理過了，就不要再回傳了。
       if "cdfghjklmnpqtvw".contains(key) { strReturn = "" }
 
-      // 回傳結果是空的話，不要緊，因為上文已經代處理過分配過程了。
+      // 回傳結果是空字串的話，不要緊，因為上文已經代處理過分配過程了。
       return strReturn
     }
 
     /// 許氏鍵盤與倚天忘形一樣同樣也比較麻煩，需要單獨處理。
+    /// @--DISCUSSION--@
+    /// 回傳結果是空的話，不要緊，因為該函數內部已經處理過分配過程了。
+    /// - Parameters:
+    ///   - key: 傳入的 String 訊號。
     mutating func handleHsu(key: String = "") -> String {
       var strReturn = ""
       strReturn = Tekkon.mapHsuStaticKeys[key] ?? ""
@@ -374,7 +443,14 @@ public struct Tekkon {
         case "s": if consonant.isEmpty { consonant = "ㄙ" } else { intonation = "˙" }
         case "d": if consonant.isEmpty { consonant = "ㄉ" } else { intonation = "ˊ" }
         case "f": if consonant.isEmpty { consonant = "ㄈ" } else { intonation = "ˇ" }
-        case "l": if value.isEmpty && !consonant.isEmpty && !semivowel.isEmpty { vowel = "ㄦ" } else if consonant.isEmpty { consonant = "ㄌ" } else { vowel = "ㄥ" }
+        case "l":
+          if value.isEmpty, !consonant.isEmpty, !semivowel.isEmpty {
+            vowel = "ㄦ"
+          } else if consonant.isEmpty {
+            consonant = "ㄌ"
+          } else {
+            vowel = "ㄥ"
+          }
         default: break
       }
 
@@ -421,6 +497,8 @@ public struct Tekkon {
 
     // MARK: - Misc Definitions
 
+    /// 這些內容用來滿足 "Equatable, Hashable, ExpressibleByStringLiteral" 需求。
+
     public static func == (lhs: Composer, rhs: Composer) -> Bool {
       lhs.value == rhs.value
     }
@@ -447,6 +525,7 @@ public struct Tekkon {
 
   // MARK: - Phonabets (Enum)
 
+  /// 該 Enum 羅列了所有合理的注音符號，將來做漢語拼音功能支援時可能會用到。
   enum Phonabets: Phonabet {
     case ofBO = "ㄅ"
     case ofPO = "ㄆ"
@@ -493,10 +572,11 @@ public struct Tekkon {
 
   // MARK: - Maps for Keyboard-to-Phonabet parsers
 
-  // 任何形式的拼音排列都會用到的陣列，用 Strings 反而省事一些。
+  /// 任何形式的拼音排列都會用到的陣列，用 Strings 反而省事一些。
   static let mapArayuruPinyin: String = "abcdefghijklmnopqrstuvwxyz12345 "
 
   /// 標準大千排列專用處理陣列。
+  /// @--DISCUSSION--@
   /// 威注音輸入法 macOS 版使用了 Ukelele 佈局來完成對諸如倚天傳統等其它注音鍵盤排列的支援。
   /// 如果要將鐵恨模組拿給別的平台的輸入法使用的話，恐怕需要針對這些注音鍵盤排列各自新增專用陣列才可以。
   static let mapQwertyDachen: [String: String] = [
@@ -507,6 +587,7 @@ public struct Tekkon {
   ]
 
   /// 許氏排列專用處理陣列，但未包含全部的映射內容。
+  /// @--DISCUSSION--@
   /// 在這裡將二十六個字母寫全，也只是為了方便做 validity check。
   /// 這裡提前對複音按鍵做處理，然後再用程式判斷介母類型、據此判斷是否需要做複音切換。
   static let mapHsuStaticKeys: [String: String] = [
@@ -516,6 +597,7 @@ public struct Tekkon {
   ]
 
   /// 倚天忘形排列預處理專用陣列，但未包含全部的映射內容。
+  /// @--DISCUSSION--@
   /// 在這裡將二十六個字母寫全，也只是為了方便做 validity check。
   /// 這裡提前對ㄓ/ㄍ/ㄕ做處理，然後再用程式判斷介母類型、據此判斷是否需要換成ㄒ/ㄑ/ㄐ。
   static let mapEten26StaticKeys: [String: String] = [
