@@ -220,8 +220,8 @@ public struct Tekkon {
     /// 初期化一個新的注拼槽。可以藉由 @input 參數指定初期已經傳入的按鍵訊號。
     /// 還可以在初期化時藉由 @arrange 參數來指定注音排列（預設為「.ofDachen」大千佈局）。
     public init(_ input: String = "", arrange parser: MandarinParser = .ofDachen) {
-      receiveKey(fromString: input)
       ensureParser(arrange: parser)
+      receiveKey(fromString: input)
     }
 
     /// 清除自身的內容，就是將聲介韻調全部清空。
