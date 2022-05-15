@@ -535,8 +535,8 @@ public struct Tekkon {
         case "l": if consonant.isEmpty || consonant == "ㄤ" { consonant = "ㄠ" } else { consonant = "ㄤ" }
         case "o": if consonant.isEmpty || consonant == "ㄢ" { consonant = "ㄟ" } else { consonant = "ㄢ" }
         case "p": if consonant.isEmpty || consonant == "ㄦ" { consonant = "ㄣ" } else { consonant = "ㄦ" }
-        case "n": if !consonant.isEmpty, !semivowel.isEmpty { vowel = "ㄥ" } else { consonant = "ㄙ" }
-        case "b": if !consonant.isEmpty, !semivowel.isEmpty { vowel = "ㄝ" } else { consonant = "ㄖ" }
+        case "n": if !consonant.isEmpty || !semivowel.isEmpty { vowel = "ㄥ" } else { consonant = "ㄙ" }
+        case "b": if !consonant.isEmpty || !semivowel.isEmpty { vowel = "ㄝ" } else { consonant = "ㄖ" }
         case "m":
           if semivowel == "ㄩ", vowel != "ㄡ" {
             semivowel = ""
