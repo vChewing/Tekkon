@@ -531,12 +531,12 @@ public struct Tekkon {
         case "q": if consonant.isEmpty || consonant == "ㄅ" { consonant = "ㄆ" } else { consonant = "ㄅ" }
         case "w": if consonant.isEmpty || consonant == "ㄉ" { consonant = "ㄊ" } else { consonant = "ㄉ" }
         case "t": if consonant.isEmpty || consonant == "ㄓ" { consonant = "ㄔ" } else { consonant = "ㄓ" }
-        case "k": if consonant.isEmpty || consonant == "ㄞ" { consonant = "ㄛ" } else { consonant = "ㄞ" }
-        case "l": if consonant.isEmpty || consonant == "ㄤ" { consonant = "ㄠ" } else { consonant = "ㄤ" }
-        case "o": if consonant.isEmpty || consonant == "ㄢ" { consonant = "ㄟ" } else { consonant = "ㄢ" }
-        case "p": if consonant.isEmpty || consonant == "ㄦ" { consonant = "ㄣ" } else { consonant = "ㄦ" }
-        case "n": if !consonant.isEmpty, !semivowel.isEmpty { vowel = "ㄥ" } else { consonant = "ㄙ" }
-        case "b": if !consonant.isEmpty, !semivowel.isEmpty { vowel = "ㄝ" } else { consonant = "ㄖ" }
+        case "i": if vowel.isEmpty || vowel == "ㄞ" { vowel = "ㄛ" } else { vowel = "ㄞ" }
+        case "l": if vowel.isEmpty || vowel == "ㄤ" { vowel = "ㄠ" } else { vowel = "ㄤ" }
+        case "o": if vowel.isEmpty || vowel == "ㄢ" { vowel = "ㄟ" } else { vowel = "ㄢ" }
+        case "p": if vowel.isEmpty || vowel == "ㄦ" { vowel = "ㄣ" } else { vowel = "ㄦ" }
+        case "n": if !consonant.isEmpty || !semivowel.isEmpty { vowel = "ㄥ" } else { consonant = "ㄙ" }
+        case "b": if !consonant.isEmpty || !semivowel.isEmpty { vowel = "ㄝ" } else { consonant = "ㄖ" }
         case "m":
           if semivowel == "ㄩ", vowel != "ㄡ" {
             semivowel = ""
@@ -563,15 +563,35 @@ public struct Tekkon {
           } else {
             semivowel = "ㄧ"
           }
-        case "e": if consonant == "ㄍ" { intonation = "ˊ" } else { consonant = "ㄍ" }
-        case "r": if consonant == "ㄐ" { intonation = "ˇ" } else { consonant = "ㄐ" }
-        case "d": if consonant == "ㄎ" { intonation = "ˋ" } else { consonant = "ㄎ" }
-        case "y": if consonant == "ㄗ" { intonation = "˙" } else { consonant = "ㄗ" }
+        case "e":
+          if !consonant.isEmpty || !semivowel.isEmpty || !vowel.isEmpty || consonant == "ㄍ" {
+            intonation = "ˊ"
+          } else {
+            consonant = "ㄍ"
+          }
+        case "r":
+          if !consonant.isEmpty || !semivowel.isEmpty || !vowel.isEmpty || consonant == "ㄐ" {
+            intonation = "ˇ"
+          } else {
+            consonant = "ㄐ"
+          }
+        case "d":
+          if !consonant.isEmpty || !semivowel.isEmpty || !vowel.isEmpty || consonant == "ㄎ" {
+            intonation = "ˋ"
+          } else {
+            consonant = "ㄎ"
+          }
+        case "y":
+          if !consonant.isEmpty || !semivowel.isEmpty || !vowel.isEmpty || consonant == "ㄗ" {
+            intonation = "˙"
+          } else {
+            consonant = "ㄗ"
+          }
         default: break
       }
 
       // 這些按鍵在上文處理過了，就不要再回傳了。
-      if "qwtklopnbmuerdy".contains(key) { strReturn = "" }
+      if "qwtilopnbmuerdy".contains(key) { strReturn = "" }
 
       // 回傳結果是空的話，不要緊，因為上文已經代處理過分配過程了。
       return strReturn
