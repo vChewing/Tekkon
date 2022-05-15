@@ -40,19 +40,22 @@ public struct Tekkon {
   /// 定義注音排列的類型
   public enum MandarinParser: Int {
     case ofDachen = 0
-    case ofEten = 1
-    case ofHsu = 2
+    case ofDachen26 = 1
+    case ofEten = 2
     case ofEten26 = 3
-    case ofIBM = 4
-    case ofMiTAC = 5
-    case ofFakeSeigyou = 6
+    case ofHsu = 4
+    case ofIBM = 5
+    case ofMiTAC = 6
     case ofSeigyou = 7
-    case ofHanyuPinyin = 10  // 目前暫時沒有漢語拼音支援
+    case ofFakeSeigyou = 8
+    case ofHanyuPinyin = 100  // 目前暫時沒有漢語拼音支援
 
     var name: String {
       switch self {
         case .ofDachen:
           return "Dachen"
+        case .ofDachen26:
+          return "Dachen26"
         case .ofEten:
           return "ETen"
         case .ofHsu:
@@ -262,6 +265,8 @@ public struct Tekkon {
         switch parser {
           case .ofDachen:
             return Tekkon.mapQwertyDachen[input] != nil
+          case .ofDachen26:
+            return Tekkon.mapDachenCP26StaticKeys[input] != nil
           case .ofEten:
             return Tekkon.mapQwertyEtenTraditional[input] != nil
           case .ofHsu:
@@ -359,6 +364,8 @@ public struct Tekkon {
       switch parser {
         case .ofDachen:
           return Tekkon.mapQwertyDachen[key] ?? ""
+        case .ofDachen26:
+          return handleDachen26(key: key)
         case .ofEten:
           return Tekkon.mapQwertyEtenTraditional[key] ?? ""
         case .ofHsu:
@@ -506,6 +513,65 @@ public struct Tekkon {
 
       // 這些按鍵在上文處理過了，就不要再回傳了。
       if "adefghklmns".contains(key) { strReturn = "" }
+
+      // 回傳結果是空的話，不要緊，因為上文已經代處理過分配過程了。
+      return strReturn
+    }
+
+    /// 大千忘形一樣同樣也比較麻煩，需要單獨處理。
+    /// @--DISCUSSION--@
+    /// 回傳結果是空的話，不要緊，因為該函數內部已經處理過分配過程了。
+    /// - Parameters:
+    ///   - key: 傳入的 String 訊號。
+    mutating func handleDachen26(key: String = "") -> String {
+      var strReturn = ""
+      strReturn = Tekkon.mapDachenCP26StaticKeys[key] ?? ""
+
+      switch key {
+        case "q": if consonant.isEmpty || consonant == "ㄅ" { consonant = "ㄆ" } else { consonant = "ㄅ" }
+        case "w": if consonant.isEmpty || consonant == "ㄉ" { consonant = "ㄊ" } else { consonant = "ㄉ" }
+        case "t": if consonant.isEmpty || consonant == "ㄓ" { consonant = "ㄔ" } else { consonant = "ㄓ" }
+        case "k": if consonant.isEmpty || consonant == "ㄞ" { consonant = "ㄛ" } else { consonant = "ㄞ" }
+        case "l": if consonant.isEmpty || consonant == "ㄤ" { consonant = "ㄠ" } else { consonant = "ㄤ" }
+        case "o": if consonant.isEmpty || consonant == "ㄢ" { consonant = "ㄟ" } else { consonant = "ㄢ" }
+        case "p": if consonant.isEmpty || consonant == "ㄦ" { consonant = "ㄣ" } else { consonant = "ㄦ" }
+        case "n": if !consonant.isEmpty, !semivowel.isEmpty { vowel = "ㄥ" } else { consonant = "ㄙ" }
+        case "b": if !consonant.isEmpty, !semivowel.isEmpty { vowel = "ㄝ" } else { consonant = "ㄖ" }
+        case "m":
+          if semivowel == "ㄩ", vowel != "ㄡ" {
+            semivowel = ""
+            vowel = "ㄡ"
+          } else if semivowel != "ㄩ", vowel == "ㄡ" {
+            semivowel = "ㄩ"
+            vowel = ""
+          } else if !semivowel.isEmpty {
+            vowel = "ㄡ"
+          } else {
+            semivowel = "ㄩ"
+          }
+        case "u":
+          if semivowel == "ㄧ", vowel != "ㄚ" {
+            semivowel = ""
+            vowel = "ㄚ"
+          } else if semivowel != "ㄧ", vowel == "ㄚ" {
+            semivowel = "ㄧ"
+          } else if semivowel == "ㄧ", vowel == "ㄚ" {
+            semivowel = ""
+            vowel = ""
+          } else if !semivowel.isEmpty {
+            vowel = "ㄚ"
+          } else {
+            semivowel = "ㄧ"
+          }
+        case "e": if consonant == "ㄍ" { intonation = "ˊ" } else { consonant = "ㄍ" }
+        case "r": if consonant == "ㄐ" { intonation = "ˇ" } else { consonant = "ㄐ" }
+        case "d": if consonant == "ㄎ" { intonation = "ˋ" } else { consonant = "ㄎ" }
+        case "y": if consonant == "ㄗ" { intonation = "˙" } else { consonant = "ㄗ" }
+        default: break
+      }
+
+      // 這些按鍵在上文處理過了，就不要再回傳了。
+      if "qwtklopnbmuerdy".contains(key) { strReturn = "" }
 
       // 回傳結果是空的話，不要緊，因為上文已經代處理過分配過程了。
       return strReturn
@@ -726,6 +792,16 @@ public struct Tekkon {
     ",": "ㄝ", ".": "ㄡ", "/": "ㄥ", ";": "ㄤ", "a": "ㄇ", "b": "ㄖ", "c": "ㄏ", "d": "ㄎ", "e": "ㄍ", "f": "ㄑ", "g": "ㄕ",
     "h": "ㄘ", "i": "ㄛ", "j": "ㄨ", "k": "ㄜ", "l": "ㄠ", "m": "ㄩ", "n": "ㄙ", "o": "ㄟ", "p": "ㄣ", "q": "ㄆ", "r": "ㄐ",
     "s": "ㄋ", "t": "ㄔ", "u": "ㄧ", "v": "ㄒ", "w": "ㄊ", "x": "ㄌ", "y": "ㄗ", "z": "ㄈ", " ": " ",
+  ]
+
+  /// 大千忘形排列專用處理陣列，但未包含全部的處理內容。
+  /// @--DISCUSSION--@
+  /// 在這裡將二十六個字母寫全，也只是為了方便做 validity check。
+  /// 這裡提前對複音按鍵做處理，然後再用程式判斷介母類型、據此判斷是否需要做複音切換。
+  static let mapDachenCP26StaticKeys: [String: String] = [
+    "a": "ㄇ", "b": "ㄖ", "c": "ㄏ", "d": "ㄎ", "e": "ㄍ", "f": "ㄑ", "g": "ㄕ", "h": "ㄘ", "i": "ㄛ", "j": "ㄨ", "k": "ㄜ",
+    "l": "ㄠ", "m": "ㄩ", "n": "ㄙ", "o": "ㄟ", "p": "ㄣ", "q": "ㄆ", "r": "ㄐ", "s": "ㄋ", "t": "ㄔ", "u": "ㄧ", "v": "ㄒ",
+    "w": "ㄊ", "x": "ㄌ", "y": "ㄗ", "z": "ㄈ", " ": " ",
   ]
 
   /// 許氏排列專用處理陣列，但未包含全部的映射內容。
