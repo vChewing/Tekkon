@@ -92,10 +92,10 @@ class ctlInputMethod: IMKInputController {
 
 這裡分用途說明一下，請結合 TekkonTests.swift 理解。
 
-首先，InputMethodKit 的 updateClientComposingBuffer() 當中可以使用 _composer 的 getDisplayedComposition() 函數。如果你想讓組字緩衝區內顯示拼音而不是注音的話，可以這樣改參數：
+首先，InputMethodKit 的 updateClientComposingBuffer() 當中可以使用 _composer 的 getComposition() 函數。如果你想讓組字緩衝區內顯示拼音而不是注音的話，可以這樣改參數：
 
 ```swift
-let XXX = getDisplayedComposition(isHanyuPinyin: true)
+let XXX = getComposition(isHanyuPinyin: true)
 ```
 
 那原始資料值呢？

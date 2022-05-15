@@ -200,8 +200,11 @@ public struct Tekkon {
       value.replacingOccurrences(of: " ", with: "")
     }
 
-    /// 與 value 類似。這個函數就是用來決定輸入法組字區內顯示的注音/拼音內容。
+    /// 與 value 類似，這個函數就是用來決定輸入法組字區內顯示的注音/拼音內容，
     /// 但可以指定是否輸出教科書格式（拼音的調號在字母上方、注音的輕聲寫在左側）。
+    /// - Parameters:
+    ///   - isHanyuPinyin: 是否將輸出結果轉成漢語拼音。
+    ///   - isTextBookStyle: 是否將輸出的注音/拼音結果轉成教科書排版格式。
     public func getComposition(isHanyuPinyin: Bool = false, isTextBookStyle: Bool = false) -> String {
       switch isHanyuPinyin {
         case false:
@@ -229,6 +232,9 @@ public struct Tekkon {
 
     /// 初期化一個新的注拼槽。可以藉由 @input 參數指定初期已經傳入的按鍵訊號。
     /// 還可以在初期化時藉由 @arrange 參數來指定注音排列（預設為「.ofDachen」大千佈局）。
+    /// - Parameters:
+    ///   - input: 傳入的 String 內容。
+    ///   - arrange: 要使用的注音排列。
     public init(_ input: String = "", arrange parser: MandarinParser = .ofDachen) {
       ensureParser(arrange: parser)
       receiveKey(fromString: input)
