@@ -141,6 +141,14 @@ public struct Tekkon {
       valueStorage = ""
     }
 
+    /// 自我變換資料值。
+    /// - Parameters:
+    ///   - strOf: 要取代的內容。
+    ///   - strWith: 要取代成的內容。
+    mutating func selfReplace(_ strOf: String, _ strWith: String = "") {
+      valueStorage = valueStorage.replacingOccurrences(of: strOf, with: strWith)
+    }
+
     // MARK: - Misc Definitions
 
     /// 這些內容用來滿足 "Equatable, Hashable, ExpressibleByStringLiteral" 需求。
@@ -231,12 +239,17 @@ public struct Tekkon {
       intonation.isEmpty && vowel.isEmpty && semivowel.isEmpty && consonant.isEmpty
     }
 
+    /// 注拼槽內容是否為空。
+    public var isPronouncable: Bool {
+      !vowel.isEmpty || !semivowel.isEmpty || !consonant.isEmpty
+    }
+
     // MARK: 注拼槽對外處理函數
 
     /// 初期化一個新的注拼槽。可以藉由 @input 參數指定初期已經傳入的按鍵訊號。
     /// 還可以在初期化時藉由 @arrange 參數來指定注音排列（預設為「.ofDachen」大千佈局）。
     /// - Parameters:
-    ///   - input: 傳入的 String 內容。
+    ///   - input: 傳入的 String 內容，用以處理單個字符。
     ///   - arrange: 要使用的注音排列。
     public init(_ input: String = "", arrange parser: MandarinParser = .ofDachen) {
       ensureParser(arrange: parser)
@@ -318,6 +331,24 @@ public struct Tekkon {
       }
     }
 
+    /// 處理一連串的按鍵輸入。
+    /// - Parameters:
+    ///   - givenSequence: 傳入的 String 內容，用以處理一整串擊鍵輸入。
+    public mutating func receiveSequence(_ givenSequence: String = "") {
+      clear()
+      for key in givenSequence {
+        receiveKey(fromString: String(key))
+      }
+    }
+
+    /// 處理一連串的按鍵輸入、且返回被處理之後的注音（陰平為空格）。
+    /// - Parameters:
+    ///   - givenSequence: 傳入的 String 內容，用以處理一整串擊鍵輸入。
+    public mutating func convertSequenceToRawComposition(_ givenSequence: String = "") -> String {
+      receiveSequence(givenSequence)
+      return value
+    }
+
     /// 專門用來響應使用者摁下 BackSpace 按鍵時的行為。
     /// 刪除順序：調、韻、介、聲。
     /// @--DISCUSSION--@
@@ -396,18 +427,27 @@ public struct Tekkon {
       let incomingPhonabet = Phonabet(strReturn)
 
       switch key {
-        case "d": if consonant.isEmpty { consonant = "ㄉ" } else { intonation = "˙" }
-        case "f": if consonant.isEmpty { consonant = "ㄈ" } else { intonation = "ˊ" }
-        case "h": if consonant.isEmpty { consonant = "ㄏ" } else { vowel = "ㄦ" }
-        case "j": if consonant.isEmpty { consonant = "ㄖ" } else { intonation = "ˇ" }
-        case "k": if consonant.isEmpty { consonant = "ㄎ" } else { intonation = "ˋ" }
-        case "l": if consonant.isEmpty { consonant = "ㄌ" } else { vowel = "ㄥ" }
-        case "m": if consonant.isEmpty { consonant = "ㄇ" } else { vowel = "ㄢ" }
-        case "n": if consonant.isEmpty { consonant = "ㄋ" } else { vowel = "ㄣ" }
-        case "p": if consonant.isEmpty { consonant = "ㄆ" } else { vowel = "ㄡ" }
-        case "q": if consonant.isEmpty { consonant = "ㄗ" } else { vowel = "ㄟ" }
-        case "t": if consonant.isEmpty { consonant = "ㄊ" } else { vowel = "ㄤ" }
-        case "w": if consonant.isEmpty { consonant = "ㄘ" } else { vowel = "ㄝ" }
+        case "d": if !isPronouncable { consonant = "ㄉ" } else { intonation = "˙" }
+        case "f": if !isPronouncable { consonant = "ㄈ" } else { intonation = "ˊ" }
+        case "j": if !isPronouncable { consonant = "ㄖ" } else { intonation = "ˇ" }
+        case "k": if !isPronouncable { consonant = "ㄎ" } else { intonation = "ˋ" }
+        case "h": if consonant.isEmpty, semivowel.isEmpty { consonant = "ㄏ" } else { vowel = "ㄦ" }
+        case "l": if consonant.isEmpty, semivowel.isEmpty { consonant = "ㄌ" } else { vowel = "ㄥ" }
+        case "m": if consonant.isEmpty, semivowel.isEmpty { consonant = "ㄇ" } else { vowel = "ㄢ" }
+        case "n": if consonant.isEmpty, semivowel.isEmpty { consonant = "ㄋ" } else { vowel = "ㄣ" }
+        case "q": if consonant.isEmpty, semivowel.isEmpty { consonant = "ㄗ" } else { vowel = "ㄟ" }
+        case "t": if consonant.isEmpty, semivowel.isEmpty { consonant = "ㄊ" } else { vowel = "ㄤ" }
+        case "w": if consonant.isEmpty, semivowel.isEmpty { consonant = "ㄘ" } else { vowel = "ㄝ" }
+        case "p":
+          if consonant.isEmpty, semivowel.isEmpty {
+            consonant = "ㄆ"
+          } else if consonant.isEmpty, semivowel == "ㄧ" {
+            vowel = "ㄡ"
+          } else if consonant.isEmpty {
+            vowel = "ㄆ"
+          } else {
+            vowel = "ㄡ"
+          }
         default: break
       }
 
@@ -439,6 +479,20 @@ public struct Tekkon {
         }
       }
 
+      if "dfjk ".contains(key),
+        !consonant.isEmpty, semivowel.isEmpty, vowel.isEmpty
+      {
+        consonant.selfReplace("ㄆ", "ㄡ")
+        consonant.selfReplace("ㄇ", "ㄢ")
+        consonant.selfReplace("ㄊ", "ㄤ")
+        consonant.selfReplace("ㄋ", "ㄣ")
+        consonant.selfReplace("ㄌ", "ㄥ")
+        consonant.selfReplace("ㄏ", "ㄦ")
+      }
+
+      // 後置修正
+      if value == "ㄍ˙" { consonant = "ㄑ" }
+
       // 這些按鍵在上文處理過了，就不要再回傳了。
       if "dfhjklmnpqtw".contains(key) { strReturn = "" }
 
@@ -456,63 +510,112 @@ public struct Tekkon {
       strReturn = Tekkon.mapHsuStaticKeys[key] ?? ""
       let incomingPhonabet = Phonabet(strReturn)
 
+      if key == " ", value == "ㄋ" {
+        consonant = ""
+        vowel = "ㄣ"
+      }
+
       switch key {
-        case "a": if consonant.isEmpty { consonant = "ㄘ" } else { vowel = "ㄟ" }
-        case "d": if consonant.isEmpty { consonant = "ㄉ" } else { intonation = "ˊ" }
+        case "d": if isPronouncable { intonation = "ˊ" } else { consonant = "ㄉ" }
+        case "f": if isPronouncable { intonation = "ˇ" } else { consonant = "ㄈ" }
+        case "s": if isPronouncable { intonation = "˙" } else { consonant = "ㄙ" }
+        case "j": if isPronouncable { intonation = "ˋ" } else { consonant = "ㄓ" }
+        case "a": if consonant.isEmpty, semivowel.isEmpty { consonant = "ㄘ" } else { vowel = "ㄟ" }
+        case "v": if semivowel.isEmpty { consonant = "ㄔ" } else { consonant = "ㄑ" }
+        case "c": if semivowel.isEmpty { consonant = "ㄕ" } else { consonant = "ㄒ" }
         case "e": if semivowel.isEmpty { semivowel = "ㄧ" } else { vowel = "ㄝ" }
-        case "f": if consonant.isEmpty { consonant = "ㄈ" } else { intonation = "ˇ" }
-        case "g": if consonant.isEmpty { consonant = "ㄍ" } else { vowel = "ㄜ" }
-        case "h": if consonant.isEmpty { consonant = "ㄏ" } else { vowel = "ㄛ" }
-        case "k": if consonant.isEmpty { consonant = "ㄎ" } else { vowel = "ㄤ" }
+        case "g": if consonant.isEmpty, semivowel.isEmpty { consonant = "ㄍ" } else { vowel = "ㄜ" }
+        case "h": if consonant.isEmpty, semivowel.isEmpty { consonant = "ㄏ" } else { vowel = "ㄛ" }
+        case "k": if consonant.isEmpty, semivowel.isEmpty { consonant = "ㄎ" } else { vowel = "ㄤ" }
+        case "m": if consonant.isEmpty, semivowel.isEmpty { consonant = "ㄇ" } else { vowel = "ㄢ" }
+        case "n": if consonant.isEmpty, semivowel.isEmpty { consonant = "ㄋ" } else { vowel = "ㄣ" }
         case "l":
           if value.isEmpty, !consonant.isEmpty, !semivowel.isEmpty {
             vowel = "ㄦ"
-          } else if consonant.isEmpty {
+          } else if consonant.isEmpty, semivowel.isEmpty {
             consonant = "ㄌ"
           } else {
             vowel = "ㄥ"
           }
-        case "m": if consonant.isEmpty { consonant = "ㄇ" } else { vowel = "ㄢ" }
-        case "n": if consonant.isEmpty { consonant = "ㄋ" } else { vowel = "ㄣ" }
-        case "s": if consonant.isEmpty { consonant = "ㄙ" } else { intonation = "˙" }
         default: break
       }
-      // 處理「一個按鍵對應兩個聲母」的情形。
-      if !consonant.isEmpty, incomingPhonabet.type == .semivowel {
-        switch consonant {
-          case "ㄍ":  // 許氏鍵盤應該也需要這個自動糾正
-            switch incomingPhonabet {
-              case "ㄧ": consonant = "ㄑ"  // ㄑㄧ
-              case "ㄨ": consonant = "ㄍ"  // ㄍㄨ
-              case "ㄩ": consonant = "ㄑ"  // ㄑㄩ
-              default: break
-            }
-          case "ㄓ":
-            if intonation.isEmpty {
+
+      // 處理特殊情形。
+      switch incomingPhonabet.type {
+        case .semivowel:
+          switch consonant {
+            case "ㄍ":  // 許氏鍵盤應該也需要這個自動糾正
               switch incomingPhonabet {
-                case "ㄧ": consonant = "ㄐ"  // ㄐㄧ
-                case "ㄨ": consonant = "ㄓ"  // ㄓㄨ
-                case "ㄩ": consonant = "ㄐ"  // ㄐㄩ
+                case "ㄧ": consonant = "ㄑ"  // ㄑㄧ
+                case "ㄨ": consonant = "ㄍ"  // ㄍㄨ
+                case "ㄩ": consonant = "ㄑ"  // ㄑㄩ
                 default: break
               }
-            }
-          case "ㄕ":
-            switch incomingPhonabet {
-              case "ㄧ": consonant = "ㄒ"  // ㄒㄧ
-              case "ㄨ": consonant = "ㄕ"  // ㄕㄨ
-              case "ㄩ": consonant = "ㄒ"  // ㄒㄩ
-              default: break
-            }
-          default: break
-        }
+            case "ㄓ":
+              if intonation.isEmpty {
+                switch incomingPhonabet {
+                  case "ㄧ": consonant = "ㄐ"  // ㄐㄧ
+                  case "ㄨ": consonant = "ㄓ"  // ㄓㄨ
+                  case "ㄩ": consonant = "ㄐ"  // ㄐㄩ
+                  default: break
+                }
+              }
+            case "ㄑ":
+              if intonation.isEmpty {
+                switch incomingPhonabet {
+                  case "ㄧ": consonant = "ㄑ"  // ㄐㄧ
+                  case "ㄨ": consonant = "ㄔ"  // ㄓㄨ
+                  case "ㄩ": consonant = "ㄑ"  // ㄐㄩ
+                  default: break
+                }
+              }
+            case "ㄕ":
+              switch incomingPhonabet {
+                case "ㄧ": consonant = "ㄒ"  // ㄒㄧ
+                case "ㄨ": consonant = "ㄕ"  // ㄕㄨ
+                case "ㄩ": consonant = "ㄒ"  // ㄒㄩ
+                default: break
+              }
+            default: break
+          }
+        case .vowel:
+          if semivowel.isEmpty {
+            consonant.selfReplace("ㄐ", "ㄓ")
+            consonant.selfReplace("ㄑ", "ㄔ")
+            consonant.selfReplace("ㄒ", "ㄕ")
+          }
+        default: break
       }
 
-      if key == "j" {  // 對該按鍵作為調號的處理得放在最後
-        if !consonant.isEmpty { intonation = "ˋ" }
+      if "dfjs ".contains(key) {
+        if !consonant.isEmpty, semivowel.isEmpty, vowel.isEmpty {
+          consonant.selfReplace("ㄍ", "ㄜ")
+          consonant.selfReplace("ㄋ", "ㄣ")
+          consonant.selfReplace("ㄌ", "ㄦ")
+          consonant.selfReplace("ㄎ", "ㄤ")
+          consonant.selfReplace("ㄇ", "ㄢ")
+        }
+        if !consonant.isEmpty, vowel.isEmpty {
+          consonant.selfReplace("ㄧ", "ㄝ")
+        }
+        if "ㄢㄣㄤㄥ".contains(vowel.value), semivowel.isEmpty {
+          consonant.selfReplace("ㄐ", "ㄓ")
+          consonant.selfReplace("ㄑ", "ㄔ")
+          consonant.selfReplace("ㄒ", "ㄕ")
+        }
+        if "ㄐㄑㄒ".contains(consonant.value), semivowel.isEmpty {
+          consonant.selfReplace("ㄐ", "ㄓ")
+          consonant.selfReplace("ㄑ", "ㄔ")
+          consonant.selfReplace("ㄒ", "ㄕ")
+        }
+        if vowel == "ㄜ", semivowel.isEmpty { consonant.selfReplace("ㄑ", "ㄔ") }
       }
+
+      // 後置修正
+      if value == "ㄔ˙" { consonant = "ㄑ" }
 
       // 這些按鍵在上文處理過了，就不要再回傳了。
-      if "adefghklmns".contains(key) { strReturn = "" }
+      if "acdefghjklmns".contains(key) { strReturn = "" }
 
       // 回傳結果是空的話，不要緊，因為上文已經代處理過分配過程了。
       return strReturn
@@ -528,15 +631,19 @@ public struct Tekkon {
       strReturn = Tekkon.mapDachenCP26StaticKeys[key] ?? ""
 
       switch key {
-        case "q": if consonant.isEmpty || consonant == "ㄅ" { consonant = "ㄆ" } else { consonant = "ㄅ" }
-        case "w": if consonant.isEmpty || consonant == "ㄉ" { consonant = "ㄊ" } else { consonant = "ㄉ" }
-        case "t": if consonant.isEmpty || consonant == "ㄓ" { consonant = "ㄔ" } else { consonant = "ㄓ" }
+        case "e": if isPronouncable { intonation = "ˊ" } else { consonant = "ㄍ" }
+        case "r": if isPronouncable { intonation = "ˇ" } else { consonant = "ㄐ" }
+        case "d": if isPronouncable { intonation = "ˋ" } else { consonant = "ㄎ" }
+        case "y": if isPronouncable { intonation = "˙" } else { consonant = "ㄗ" }
+        case "b": if !consonant.isEmpty || !semivowel.isEmpty { vowel = "ㄝ" } else { consonant = "ㄖ" }
         case "i": if vowel.isEmpty || vowel == "ㄞ" { vowel = "ㄛ" } else { vowel = "ㄞ" }
         case "l": if vowel.isEmpty || vowel == "ㄤ" { vowel = "ㄠ" } else { vowel = "ㄤ" }
+        case "n": if !consonant.isEmpty || !semivowel.isEmpty { vowel = "ㄥ" } else { consonant = "ㄙ" }
         case "o": if vowel.isEmpty || vowel == "ㄢ" { vowel = "ㄟ" } else { vowel = "ㄢ" }
         case "p": if vowel.isEmpty || vowel == "ㄦ" { vowel = "ㄣ" } else { vowel = "ㄦ" }
-        case "n": if !consonant.isEmpty || !semivowel.isEmpty { vowel = "ㄥ" } else { consonant = "ㄙ" }
-        case "b": if !consonant.isEmpty || !semivowel.isEmpty { vowel = "ㄝ" } else { consonant = "ㄖ" }
+        case "q": if consonant.isEmpty || consonant == "ㄅ" { consonant = "ㄆ" } else { consonant = "ㄅ" }
+        case "t": if consonant.isEmpty || consonant == "ㄓ" { consonant = "ㄔ" } else { consonant = "ㄓ" }
+        case "w": if consonant.isEmpty || consonant == "ㄉ" { consonant = "ㄊ" } else { consonant = "ㄉ" }
         case "m":
           if semivowel == "ㄩ", vowel != "ㄡ" {
             semivowel = ""
@@ -562,30 +669,6 @@ public struct Tekkon {
             vowel = "ㄚ"
           } else {
             semivowel = "ㄧ"
-          }
-        case "e":
-          if !consonant.isEmpty || !semivowel.isEmpty || !vowel.isEmpty || consonant == "ㄍ" {
-            intonation = "ˊ"
-          } else {
-            consonant = "ㄍ"
-          }
-        case "r":
-          if !consonant.isEmpty || !semivowel.isEmpty || !vowel.isEmpty || consonant == "ㄐ" {
-            intonation = "ˇ"
-          } else {
-            consonant = "ㄐ"
-          }
-        case "d":
-          if !consonant.isEmpty || !semivowel.isEmpty || !vowel.isEmpty || consonant == "ㄎ" {
-            intonation = "ˋ"
-          } else {
-            consonant = "ㄎ"
-          }
-        case "y":
-          if !consonant.isEmpty || !semivowel.isEmpty || !vowel.isEmpty || consonant == "ㄗ" {
-            intonation = "˙"
-          } else {
-            consonant = "ㄗ"
           }
         default: break
       }
@@ -829,7 +912,7 @@ public struct Tekkon {
   /// 在這裡將二十六個字母寫全，也只是為了方便做 validity check。
   /// 這裡提前對複音按鍵做處理，然後再用程式判斷介母類型、據此判斷是否需要做複音切換。
   static let mapHsuStaticKeys: [String: String] = [
-    "a": "ㄘ", "b": "ㄅ", "c": "ㄕ", "d": "ㄉ", "e": "ㄧ", "f": "ㄈ", "g": "ㄍ", "h": "ㄏ", "i": "ㄞ", "j": "ㄓ", "k": "ㄎ",
+    "a": "ㄘ", "b": "ㄅ", "c": "ㄒ", "d": "ㄉ", "e": "ㄧ", "f": "ㄈ", "g": "ㄍ", "h": "ㄏ", "i": "ㄞ", "j": "ㄐ", "k": "ㄎ",
     "l": "ㄌ", "m": "ㄇ", "n": "ㄋ", "o": "ㄡ", "p": "ㄆ", "r": "ㄖ", "s": "ㄙ", "t": "ㄊ", "u": "ㄩ", "v": "ㄑ", "w": "ㄠ",
     "x": "ㄨ", "y": "ㄚ", "z": "ㄗ", " ": " ",
   ]
