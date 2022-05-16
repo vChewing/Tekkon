@@ -141,6 +141,14 @@ public struct Tekkon {
       valueStorage = ""
     }
 
+    /// 自我變換資料值。
+    /// - Parameters:
+    ///   - strOf: 要取代的內容。
+    ///   - strWith: 要取代成的內容。
+    mutating func selfReplace(_ strOf: String, _ strWith: String = "") {
+      valueStorage = valueStorage.replacingOccurrences(of: strOf, with: strWith)
+    }
+
     // MARK: - Misc Definitions
 
     /// 這些內容用來滿足 "Equatable, Hashable, ExpressibleByStringLiteral" 需求。
@@ -236,7 +244,7 @@ public struct Tekkon {
     /// 初期化一個新的注拼槽。可以藉由 @input 參數指定初期已經傳入的按鍵訊號。
     /// 還可以在初期化時藉由 @arrange 參數來指定注音排列（預設為「.ofDachen」大千佈局）。
     /// - Parameters:
-    ///   - input: 傳入的 String 內容。
+    ///   - input: 傳入的 String 內容，用以處理單個字符。
     ///   - arrange: 要使用的注音排列。
     public init(_ input: String = "", arrange parser: MandarinParser = .ofDachen) {
       ensureParser(arrange: parser)
@@ -316,6 +324,24 @@ public struct Tekkon {
       if let scalar = UnicodeScalar(inputCharCode) {
         receiveKey(fromString: String(scalar))
       }
+    }
+
+    /// 處理一連串的按鍵輸入。
+    /// - Parameters:
+    ///   - givenSequence: 傳入的 String 內容，用以處理一整串擊鍵輸入。
+    public mutating func receiveSequence(_ givenSequence: String = "") {
+      clear()
+      for key in givenSequence {
+        receiveKey(fromString: String(key))
+      }
+    }
+
+    /// 處理一連串的按鍵輸入、且返回被處理之後的注音（陰平為空格）。
+    /// - Parameters:
+    ///   - givenSequence: 傳入的 String 內容，用以處理一整串擊鍵輸入。
+    public mutating func convertSequenceToRawComposition(_ givenSequence: String = "") -> String {
+      receiveSequence(givenSequence)
+      return value
     }
 
     /// 專門用來響應使用者摁下 BackSpace 按鍵時的行為。
