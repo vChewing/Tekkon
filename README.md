@@ -62,6 +62,16 @@ class ctlInputMethod: IMKInputController {
         _composer.ensureParser(arrange: .ofMiTAC)  // 神通
       case MandarinParser.ofFakeSeigyou.rawValue:
         _composer.ensureParser(arrange: .ofFakeSeigyou)  // 偽精業
+      case MandarinParser.ofHanyuPinyin.rawValue:
+        _composer.ensureParser(arrange: .ofHanyuPinyin)  // 漢語拼音
+      case MandarinParser.ofSecondaryPinyin.rawValue:
+        _composer.ensureParser(arrange: .ofSecondaryPinyin)  // 國音二式
+      case MandarinParser.ofYalePinyin.rawValue:
+        _composer.ensureParser(arrange: .ofYalePinyin)  // 耶魯拼音
+      case MandarinParser.ofHualuoPinyin.rawValue:
+        _composer.ensureParser(arrange: .ofHualuoPinyin)  // 華羅拼音
+      case MandarinParser.ofUniversalPinyin.rawValue:
+        _composer.ensureParser(arrange: .ofUniversalPinyin)  // 通用拼音
       default:
         _composer.ensureParser(arrange: .ofDachen)  // 預設情況下按照 mgrPrefs 內定義預設值來處理
         mgrPrefs.mandarinParser = MandarinParser.ofStandard.rawValue
@@ -216,6 +226,10 @@ var composeReading = _composer.hasToneMarker()
 // 來看看詞庫內到底有沒有對應的讀音索引。這裡用了類似「|=」的判斷處理方式。
 composeReading = composeReading || (!_composer.isEmpty && (input.isSpace || input.isEnter))
 if composeReading {  // 符合按鍵組合條件
+  if input.isSpace && !_composer.hasToneMarker() {
+    _composer.receiveKey(fromString: " ")  // 補上空格，否則倚天忘形與許氏排列某些音無法響應不了陰平聲調。
+    // 小麥注音因為使用 OVMandarin 而不是鐵恨引擎，所以不需要這樣補。但鐵恨引擎對所有聲調一視同仁。
+  }
   let reading = _composer.getRealComposition()  // 拿取用來進行索引檢索用的注音
   // 如果輸入法的辭典索引是漢語拼音的話，要注意上一行拿到的內容得是漢語拼音。
 
