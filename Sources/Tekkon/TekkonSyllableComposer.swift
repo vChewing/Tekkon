@@ -329,8 +329,8 @@ public struct Tekkon {
     public mutating func receiveKey(fromString input: String = "") {
       switch parser {
         case .ofHanyuPinyin:
-          if mapArayuruPinyinIntonation.contains(input) {
-            if let theTone = mapArayuruPinyinIntonationTable[input] {
+          if mapArayuruPinyinIntonation.keys.contains(input) {
+            if let theTone = mapArayuruPinyinIntonation[input] {
               intonation = Phonabet(theTone)
             }
           } else {
@@ -895,13 +895,14 @@ public struct Tekkon {
     ["v1", "ǖ"], ["v2", "ǘ"], ["v3", "ǚ"], ["v4", "ǜ"],
   ]
 
-  // MARK: - Maps for Keyboard-to-Phonabet parsers
+  // MARK: - Maps for Keyboard-to-Pinyin parsers
 
   /// 任何形式的拼音排列都會用到的陣列，用 Strings 反而省事一些。
   /// 這裡同時兼容大千注音的調號數字，所以也將 6、7 號數字鍵放在允許範圍內。
   static let mapArayuruPinyin: String = "abcdefghijklmnopqrstuvwxyz1234567 "
-  static let mapArayuruPinyinIntonation: String = "1234567 "
-  static let mapArayuruPinyinIntonationTable: [String: String] = [
+
+  /// 任何拼音都會用到的聲調鍵陣列
+  static let mapArayuruPinyinIntonation: [String: String] = [
     "1": " ", "2": "ˊ", "3": "ˇ", "4": "ˋ", "5": "˙", "6": "ˊ", "7": "˙", " ": " ",
   ]
   /// 漢語拼音排列專用處理陣列。
@@ -960,6 +961,8 @@ public struct Tekkon {
     "wo": "ㄨㄛ", "wu": "ㄨ", "xi": "ㄒㄧ", "xu": "ㄒㄩ", "ya": "ㄧㄚ", "ye": "ㄧㄝ", "yi": "ㄧ", "yo": "ㄧㄛ", "yu": "ㄩ", "za": "ㄗㄚ",
     "ze": "ㄗㄜ", "zi": "ㄗ", "zu": "ㄗㄨ", "a": "ㄚ", "e": "ㄜ", "o": "ㄛ", "q": "ㄑ",
   ]
+
+  // MARK: - Maps for Keyboard-to-Phonabet parsers
 
   /// 標準大千排列專用處理陣列。
   /// @--DISCUSSION--@
