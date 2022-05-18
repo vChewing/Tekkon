@@ -132,18 +132,7 @@ public struct Tekkon {
       if !input.isEmpty {
         if allowedPhonabets.contains(String(input.reversed()[0])) {
           valueStorage = String(input.reversed()[0])
-          if Tekkon.allowedConsonants.contains(value) {
-            type = .consonant
-          } else if Tekkon.allowedsemivowels.contains(value) {
-            type = .semivowel
-          } else if Tekkon.allowedVowels.contains(value) {
-            type = .vowel
-          } else if Tekkon.allowedIntonations.contains(value) {
-            type = .intonation
-          } else {
-            type = .null
-            valueStorage = ""
-          }
+          ensureType()
         }
       }
     }
@@ -159,6 +148,23 @@ public struct Tekkon {
     ///   - strWith: 要取代成的內容。
     mutating func selfReplace(_ strOf: String, _ strWith: String = "") {
       valueStorage = valueStorage.replacingOccurrences(of: strOf, with: strWith)
+      ensureType()
+    }
+
+    /// 用來自動更新自身的屬性值的函數。
+    mutating func ensureType() {
+      if Tekkon.allowedConsonants.contains(value) {
+        type = .consonant
+      } else if Tekkon.allowedsemivowels.contains(value) {
+        type = .semivowel
+      } else if Tekkon.allowedVowels.contains(value) {
+        type = .vowel
+      } else if Tekkon.allowedIntonations.contains(value) {
+        type = .intonation
+      } else {
+        type = .null
+        valueStorage = ""
+      }
     }
 
     // MARK: - Misc Definitions
