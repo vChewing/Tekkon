@@ -266,7 +266,11 @@ public struct Tekkon {
 
     /// 注拼槽內容是否為空。
     public var isEmpty: Bool {
-      intonation.isEmpty && vowel.isEmpty && semivowel.isEmpty && consonant.isEmpty
+      switch parser {
+        case .ofHanyuPinyin, .ofSecondaryPinyin, .ofYalePinyin, .ofHualuoPinyin, .ofUniversalPinyin:
+          return intonation.isEmpty && romajiBuffer.isEmpty
+        default: return intonation.isEmpty && vowel.isEmpty && semivowel.isEmpty && consonant.isEmpty
+      }
     }
 
     /// 注拼槽內容是否為空。
