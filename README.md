@@ -1,14 +1,18 @@
 # Tekkon Engine 鐵恨引擎
 
+該引擎已經實裝於基於純 Swift 語言完成的 **威注音輸入法** 內，歡迎好奇者嘗試：[GitHub](https://github.com/ShikiSuen/vChewing-macOS ) | [Gitee](https://gitee.com/vchewing/vChewing-macOS ) 。
+
 鐵恨引擎是用來處理注音輸入法並擊行為的一個模組。該倉庫乃威注音專案的弒神行動（Operation Longinus）的一部分。
+
+Tekkon Engine is a module made for processing combo-composition of stroke-based Mandarin Chinese phonetics (i.e. Zhuyin / Bopomofo). This repository is part of Operation Longinus of The vChewing Project.
+
 
 羅馬拼音輸入目前僅支援漢語拼音、國音二式、耶魯拼音、華羅拼音、通用拼音。
 
 - 因為**韋氏拼音（威妥瑪拼音）輔音清濁不分的問題非常嚴重**、無法與注音符號形成逐一對應，故鐵恨引擎在技術上無法實現對韋氏拼音的支援。
 
-Tekkon Engine is a module made for processing combo-composition of stroke-based Mandarin Chinese phonetics (i.e. Zhuyin / Bopomofo). This repository is part of Operation Longinus of The vChewing Project.
-
 Regarding pinyin input support, we only support: Hanyu Pinyin, Secondary Pinyin, Yale Pinyin, Hualuo Pinyin, and Universal Pinyin.
+
 - **Tekkon is unable to provide Wade–Giles Pinyin support** since it cannot make a one-to-one mapping to all possible phonabet combinations (especially it cannot distinguish "k" and "g").
 
 ## 使用說明
