@@ -774,53 +774,6 @@ public struct Tekkon {
     }
   }
 
-  // MARK: - Phonabets (Enum)
-
-  /// 該 Enum 羅列了所有合理的注音符號，將來做漢語拼音功能支援時可能會用到。
-  enum Phonabets: Phonabet {
-    case ofBO = "ㄅ"
-    case ofPO = "ㄆ"
-    case ofMO = "ㄇ"
-    case ofFO = "ㄈ"
-    case ofDE = "ㄉ"
-    case ofTE = "ㄊ"
-    case ofNE = "ㄋ"
-    case ofLE = "ㄌ"
-    case ofGE = "ㄍ"
-    case ofKE = "ㄎ"
-    case ofHE = "ㄏ"
-    case ofJI = "ㄐ"
-    case ofQI = "ㄑ"
-    case ofXI = "ㄒ"
-    case ofZH = "ㄓ"
-    case ofCH = "ㄔ"
-    case ofSH = "ㄕ"
-    case ofRI = "ㄖ"
-    case ofZI = "ㄗ"
-    case ofCI = "ㄘ"
-    case ofSI = "ㄙ"
-    case ofYI = "ㄧ"
-    case ofWU = "ㄨ"
-    case ofYU = "ㄩ"
-    case ofAA = "ㄚ"
-    case ofOO = "ㄛ"
-    case ofEE = "ㄜ"
-    case ofEA = "ㄝ"
-    case ofAI = "ㄞ"
-    case ofEI = "ㄟ"
-    case ofAO = "ㄠ"
-    case ofOU = "ㄡ"
-    case ofAN = "ㄢ"
-    case ofEN = "ㄣ"
-    case ofAG = "ㄤ"
-    case ofOG = "ㄥ"
-    case ofT1 = " "
-    case ofT2 = "ˊ"
-    case ofT3 = "ˇ"
-    case ofT4 = "ˋ"
-    case ofT5 = "˙"
-  }
-
   // MARK: - Phonabet to Hanyu-Pinyin Conversion Processing
 
   /// 注音轉拼音，要求陰平必須是空格。
