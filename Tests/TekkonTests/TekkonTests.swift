@@ -66,7 +66,56 @@ final class TekkonTests: XCTestCase {
     XCTAssert(result == true)
   }
 
-  func testKeyReceivingAndCompositions() throws {
+  func testHanyuPinyinKeyReceivingAndCompositions() throws {
+    var composer = Tekkon.Composer(arrange: .ofHanyuPinyin)
+    var toneMarkerIndicator = true
+
+    // Test Key Receiving
+    composer.receiveKey(fromCharCode: 100)  // d
+    composer.receiveKey(fromString: "i")
+    composer.receiveKey(fromString: "a")
+    composer.receiveKey(fromString: "o")
+
+    // Testing missing tone markers
+    toneMarkerIndicator = composer.hasToneMarker()
+    XCTAssert(!toneMarkerIndicator)
+
+    composer.receiveKey(fromString: "3")  // 上聲
+    XCTAssertEqual(composer.value, "ㄉㄧㄠˇ")
+    composer.doBackSpace()
+    composer.receiveKey(fromString: " ")  // 陰平
+    XCTAssertEqual(composer.value, "ㄉㄧㄠ ")  // 這裡回傳的結果的陰平是空格
+
+    // Test Getting Real Composition
+    XCTAssertEqual(composer.realComposition, "ㄉㄧㄠ")  // 這裡回傳的結果的陰平無空格
+
+    // Test Getting Displayed Composition
+    XCTAssertEqual(composer.getComposition(), "ㄉㄧㄠ")
+    XCTAssertEqual(composer.getComposition(isHanyuPinyin: true), "diao1")
+    XCTAssertEqual(composer.getComposition(isHanyuPinyin: true, isTextBookStyle: true), "diāo")
+    XCTAssertEqual(composer.getInlineCompositionForIMK(isHanyuPinyin: true), "diao1")
+
+    // Test Tone 5
+    composer.receiveKey(fromString: "7")  // 輕聲
+    XCTAssertEqual(composer.getComposition(), "ㄉㄧㄠ˙")
+    XCTAssertEqual(composer.getComposition(isTextBookStyle: true), "˙ㄉㄧㄠ")
+
+    // Testing having tone markers
+    toneMarkerIndicator = composer.hasToneMarker()
+    XCTAssert(toneMarkerIndicator)
+
+    // Testing having not-only tone markers
+    toneMarkerIndicator = composer.hasToneMarker(withNothingElse: true)
+    XCTAssert(!toneMarkerIndicator)
+
+    // Testing having only tone markers
+    composer.clear()
+    composer.receiveKey(fromString: "3")  // 上聲
+    toneMarkerIndicator = composer.hasToneMarker(withNothingElse: true)
+    XCTAssert(toneMarkerIndicator)
+  }
+
+  func testPhonabetKeyReceivingAndCompositions() throws {
     var composer = Tekkon.Composer(arrange: .ofDachen)
     var toneMarkerIndicator = true
 
@@ -93,6 +142,7 @@ final class TekkonTests: XCTestCase {
     XCTAssertEqual(composer.getComposition(), "ㄉㄧㄠ")
     XCTAssertEqual(composer.getComposition(isHanyuPinyin: true), "diao1")
     XCTAssertEqual(composer.getComposition(isHanyuPinyin: true, isTextBookStyle: true), "diāo")
+    XCTAssertEqual(composer.getInlineCompositionForIMK(isHanyuPinyin: true), "diao1")
 
     // Test Tone 5
     composer.receiveKey(fromString: "7")  // 輕聲

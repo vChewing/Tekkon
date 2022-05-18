@@ -196,6 +196,9 @@ public struct Tekkon {
     /// 聲調。
     public var intonation: Phonabet = ""
 
+    /// 為拉丁字母專用的組音區
+    public var romajiBuffer: String = ""
+
     /// 注音排列種類。預設情況下是大千排列（Windows / macOS 預設注音排列）。
     public var parser: MandarinParser = .ofDachen
 
@@ -234,6 +237,26 @@ public struct Tekkon {
       }
     }
 
+    // 該函數僅用來獲取給 macOS InputMethod Kit 的內文組字區使用的顯示字串。
+    /// - Parameters:
+    ///   - isHanyuPinyin: 是否將輸出結果轉成漢語拼音。
+    public func getInlineCompositionForIMK(isHanyuPinyin: Bool = false) -> String {
+      switch parser {
+        case .ofHanyuPinyin:
+          var toneReturned = ""
+          switch intonation.value {
+            case " ": toneReturned = "1"
+            case "ˊ": toneReturned = "2"
+            case "ˇ": toneReturned = "3"
+            case "ˋ": toneReturned = "4"
+            case "˙": toneReturned = "5"
+            default: break
+          }
+          return romajiBuffer + toneReturned
+        default: return getComposition(isHanyuPinyin: isHanyuPinyin)
+      }
+    }
+
     /// 注拼槽內容是否為空。
     public var isEmpty: Bool {
       intonation.isEmpty && vowel.isEmpty && semivowel.isEmpty && consonant.isEmpty
@@ -263,6 +286,7 @@ public struct Tekkon {
       semivowel.clear()
       vowel.clear()
       intonation.clear()
+      romajiBuffer = ""
     }
 
     // MARK: - Public Functions
@@ -308,14 +332,22 @@ public struct Tekkon {
     /// - Parameters:
     ///   - fromString: 傳入的 String 內容。
     public mutating func receiveKey(fromString input: String = "") {
-      let translatedInput = translate(key: String(input))
-      let thePhone: Phonabet = .init(translatedInput)
-      switch thePhone.type {
-        case .consonant: consonant = thePhone
-        case .semivowel: semivowel = thePhone
-        case .vowel: vowel = thePhone
-        case .intonation: intonation = thePhone
-        default: break
+      switch parser {
+        case .ofHanyuPinyin:
+          if mapArayuruPinyinIntonation.contains(input) {
+            if let theTone = mapArayuruPinyinIntonationTable[input] {
+              intonation = Phonabet(theTone)
+            }
+          } else {
+            // 為了防止 romajiBuffer 越敲越長帶來算力負擔，這裡讓它在要溢出時自動丟掉先取音頭。
+            if romajiBuffer.count > 5 {
+              romajiBuffer = String(romajiBuffer.dropFirst())
+            }
+            let romajiBufferBackup = romajiBuffer + input
+            receiveSequence(romajiBufferBackup, isRomaji: true)
+            romajiBuffer = romajiBufferBackup
+          }
+        default: receiveKey(fromPhonabet: translate(key: String(input)))
       }
     }
 
@@ -331,13 +363,41 @@ public struct Tekkon {
       }
     }
 
+    /// 接受傳入的按鍵訊號時的處理，處理對象為單個注音符號。
+    /// 主要就是將注音符號拆分辨識且分配到正確的貯存位置而已。
+    /// - Parameters:
+    ///   - fromPhonabet: 傳入的單個注音符號字串。
+    public mutating func receiveKey(fromPhonabet phonabet: String = "") {
+      let thePhone: Phonabet = .init(phonabet)
+      switch thePhone.type {
+        case .consonant: consonant = thePhone
+        case .semivowel: semivowel = thePhone
+        case .vowel: vowel = thePhone
+        case .intonation: intonation = thePhone
+        default: break
+      }
+    }
+
     /// 處理一連串的按鍵輸入。
     /// - Parameters:
     ///   - givenSequence: 傳入的 String 內容，用以處理一整串擊鍵輸入。
-    public mutating func receiveSequence(_ givenSequence: String = "") {
+    ///   - isRomaji: 如果輸入的字串是諸如漢語拼音這樣的西文字母拼音的話，請啟用此選項。
+    public mutating func receiveSequence(_ givenSequence: String = "", isRomaji: Bool = false) {
       clear()
-      for key in givenSequence {
-        receiveKey(fromString: String(key))
+      if isRomaji {
+        switch parser {
+          case .ofHanyuPinyin:
+            if let dictResult = mapHanyuPinyin[givenSequence] {
+              for phonabet in dictResult {
+                receiveKey(fromPhonabet: String(phonabet))
+              }
+            }
+          default: break
+        }
+      } else {
+        for key in givenSequence {
+          receiveKey(fromString: String(key))
+        }
       }
     }
 
@@ -354,7 +414,13 @@ public struct Tekkon {
     /// @--DISCUSSION--@
     /// 基本上就是按順序從游標前方開始往後刪。
     public mutating func doBackSpace() {
-      if !intonation.isEmpty {
+      if parser == .ofHanyuPinyin, !romajiBuffer.isEmpty {
+        if !intonation.isEmpty {
+          intonation.clear()
+        } else {
+          romajiBuffer = String(romajiBuffer.dropLast())
+        }
+      } else if !intonation.isEmpty {
         intonation.clear()
       } else if !vowel.isEmpty {
         vowel.clear()
@@ -411,7 +477,7 @@ public struct Tekkon {
           return Tekkon.mapSeigyou[key] ?? ""
         case .ofFakeSeigyou:
           return Tekkon.mapFakeSeigyou[key] ?? ""
-        case .ofHanyuPinyin: break  // TODO: 待辦
+        case .ofHanyuPinyin: break  // 漢語拼音單獨用另外的函數處理
       }
       return ""
     }
@@ -884,7 +950,68 @@ public struct Tekkon {
   // MARK: - Maps for Keyboard-to-Phonabet parsers
 
   /// 任何形式的拼音排列都會用到的陣列，用 Strings 反而省事一些。
-  static let mapArayuruPinyin: String = "abcdefghijklmnopqrstuvwxyz12345 "
+  /// 這裡同時兼容大千注音的調號數字，所以也將 6、7 號數字鍵放在允許範圍內。
+  static let mapArayuruPinyin: String = "abcdefghijklmnopqrstuvwxyz1234567 "
+  static let mapArayuruPinyinIntonation: String = "1234567 "
+  static let mapArayuruPinyinIntonationTable: [String: String] = [
+    "1": " ", "2": "ˊ", "3": "ˇ", "4": "ˋ", "5": "˙", "6": "ˊ", "7": "˙", " ": " ",
+  ]
+  /// 漢語拼音排列專用處理陣列。
+  static let mapHanyuPinyin: [String: String] = [
+    "chuang": "ㄔㄨㄤ", "shuang": "ㄕㄨㄤ", "zhuang": "ㄓㄨㄤ", "chang": "ㄔㄤ", "cheng": "ㄔㄥ", "chong": "ㄔㄨㄥ", "chuai": "ㄔㄨㄞ",
+    "chuan": "ㄔㄨㄢ", "guang": "ㄍㄨㄤ", "huang": "ㄏㄨㄤ", "jiang": "ㄐㄧㄤ", "jiong": "ㄐㄩㄥ", "kiang": "ㄎㄧㄤ", "kuang": "ㄎㄨㄤ",
+    "liang": "ㄌㄧㄤ", "niang": "ㄋㄧㄤ", "qiang": "ㄑㄧㄤ", "qiong": "ㄑㄩㄥ", "shang": "ㄕㄤ", "sheng": "ㄕㄥ", "shuai": "ㄕㄨㄞ",
+    "shuan": "ㄕㄨㄢ", "xiang": "ㄒㄧㄤ", "xiong": "ㄒㄩㄥ", "zhang": "ㄓㄤ", "zheng": "ㄓㄥ", "zhong": "ㄓㄨㄥ", "zhuai": "ㄓㄨㄞ",
+    "zhuan": "ㄓㄨㄢ", "bang": "ㄅㄤ", "beng": "ㄅㄥ", "bian": "ㄅㄧㄢ", "biao": "ㄅㄧㄠ", "bing": "ㄅㄧㄥ", "cang": "ㄘㄤ", "ceng": "ㄘㄥ",
+    "chai": "ㄔㄞ", "chan": "ㄔㄢ", "chao": "ㄔㄠ", "chen": "ㄔㄣ", "chou": "ㄔㄡ", "chua": "ㄔㄨㄚ", "chui": "ㄔㄨㄟ", "chun": "ㄔㄨㄣ",
+    "chuo": "ㄔㄨㄛ", "cong": "ㄘㄨㄥ", "cuan": "ㄘㄨㄢ", "dang": "ㄉㄤ", "deng": "ㄉㄥ", "dian": "ㄉㄧㄢ", "diao": "ㄉㄧㄠ",
+    "ding": "ㄉㄧㄥ", "dong": "ㄉㄨㄥ", "duan": "ㄉㄨㄢ", "fang": "ㄈㄤ", "feng": "ㄈㄥ", "fiao": "ㄈㄧㄠ", "fong": "ㄈㄨㄥ", "gang": "ㄍㄤ",
+    "geng": "ㄍㄥ", "giao": "ㄍㄧㄠ", "gong": "ㄍㄨㄥ", "guai": "ㄍㄨㄞ", "guan": "ㄍㄨㄢ", "hang": "ㄏㄤ", "heng": "ㄏㄥ", "hong": "ㄏㄨㄥ",
+    "huai": "ㄏㄨㄞ", "huan": "ㄏㄨㄢ", "jian": "ㄐㄧㄢ", "jiao": "ㄐㄧㄠ", "jing": "ㄐㄧㄥ", "juan": "ㄐㄩㄢ", "kang": "ㄎㄤ",
+    "keng": "ㄎㄥ", "kong": "ㄎㄨㄥ", "kuai": "ㄎㄨㄞ", "kuan": "ㄎㄨㄢ", "lang": "ㄌㄤ", "leng": "ㄌㄥ", "lian": "ㄌㄧㄢ", "liao": "ㄌㄧㄠ",
+    "ling": "ㄌㄧㄥ", "long": "ㄌㄨㄥ", "luan": "ㄌㄨㄢ", "lvan": "ㄌㄩㄢ", "mang": "ㄇㄤ", "meng": "ㄇㄥ", "mian": "ㄇㄧㄢ",
+    "miao": "ㄇㄧㄠ", "ming": "ㄇㄧㄥ", "nang": "ㄋㄤ", "neng": "ㄋㄥ", "nian": "ㄋㄧㄢ", "niao": "ㄋㄧㄠ", "ning": "ㄋㄧㄥ",
+    "nong": "ㄋㄨㄥ", "nuan": "ㄋㄨㄢ", "pang": "ㄆㄤ", "peng": "ㄆㄥ", "pian": "ㄆㄧㄢ", "piao": "ㄆㄧㄠ", "ping": "ㄆㄧㄥ",
+    "qian": "ㄑㄧㄢ", "qiao": "ㄑㄧㄠ", "qing": "ㄑㄧㄥ", "quan": "ㄑㄩㄢ", "rang": "ㄖㄤ", "reng": "ㄖㄥ", "rong": "ㄖㄨㄥ",
+    "ruan": "ㄖㄨㄢ", "sang": "ㄙㄤ", "seng": "ㄙㄥ", "shai": "ㄕㄞ", "shan": "ㄕㄢ", "shao": "ㄕㄠ", "shei": "ㄕㄟ", "shen": "ㄕㄣ",
+    "shou": "ㄕㄡ", "shua": "ㄕㄨㄚ", "shui": "ㄕㄨㄟ", "shun": "ㄕㄨㄣ", "shuo": "ㄕㄨㄛ", "song": "ㄙㄨㄥ", "suan": "ㄙㄨㄢ",
+    "tang": "ㄊㄤ", "teng": "ㄊㄥ", "tian": "ㄊㄧㄢ", "tiao": "ㄊㄧㄠ", "ting": "ㄊㄧㄥ", "tong": "ㄊㄨㄥ", "tuan": "ㄊㄨㄢ", "wang": "ㄨㄤ",
+    "weng": "ㄨㄥ", "xian": "ㄒㄧㄢ", "xiao": "ㄒㄧㄠ", "xing": "ㄒㄧㄥ", "xuan": "ㄒㄩㄢ", "yang": "ㄧㄤ", "ying": "ㄧㄥ", "yong": "ㄩㄥ",
+    "yuan": "ㄩㄢ", "zang": "ㄗㄤ", "zeng": "ㄗㄥ", "zhai": "ㄓㄞ", "zhan": "ㄓㄢ", "zhao": "ㄓㄠ", "zhei": "ㄓㄟ", "zhen": "ㄓㄣ",
+    "zhou": "ㄓㄡ", "zhua": "ㄓㄨㄚ", "zhui": "ㄓㄨㄟ", "zhun": "ㄓㄨㄣ", "zhuo": "ㄓㄨㄛ", "zong": "ㄗㄨㄥ", "zuan": "ㄗㄨㄢ",
+    "jun": "ㄐㄩㄣ", "ang": "ㄤ", "bai": "ㄅㄞ", "ban": "ㄅㄢ", "bao": "ㄅㄠ", "bei": "ㄅㄟ", "ben": "ㄅㄣ", "bie": "ㄅㄧㄝ",
+    "bin": "ㄅㄧㄣ", "cai": "ㄘㄞ", "can": "ㄘㄢ", "cao": "ㄘㄠ", "cei": "ㄘㄟ", "cen": "ㄘㄣ", "cha": "ㄔㄚ", "che": "ㄔㄜ", "chi": "ㄔ",
+    "chu": "ㄔㄨ", "cou": "ㄘㄡ", "cui": "ㄘㄨㄟ", "cun": "ㄘㄨㄣ", "cuo": "ㄘㄨㄛ", "dai": "ㄉㄞ", "dan": "ㄉㄢ", "dao": "ㄉㄠ",
+    "dei": "ㄉㄟ", "den": "ㄉㄣ", "dia": "ㄉㄧㄚ", "die": "ㄉㄧㄝ", "diu": "ㄉㄧㄡ", "dou": "ㄉㄡ", "dui": "ㄉㄨㄟ", "dun": "ㄉㄨㄣ",
+    "duo": "ㄉㄨㄛ", "eng": "ㄥ", "fan": "ㄈㄢ", "fei": "ㄈㄟ", "fen": "ㄈㄣ", "fou": "ㄈㄡ", "gai": "ㄍㄞ", "gan": "ㄍㄢ", "gao": "ㄍㄠ",
+    "gei": "ㄍㄟ", "gin": "ㄍㄧㄣ", "gen": "ㄍㄣ", "gou": "ㄍㄡ", "gua": "ㄍㄨㄚ", "gue": "ㄍㄨㄜ", "gui": "ㄍㄨㄟ", "gun": "ㄍㄨㄣ",
+    "guo": "ㄍㄨㄛ", "hai": "ㄏㄞ", "han": "ㄏㄢ", "hao": "ㄏㄠ", "hei": "ㄏㄟ", "hen": "ㄏㄣ", "hou": "ㄏㄡ", "hua": "ㄏㄨㄚ",
+    "hui": "ㄏㄨㄟ", "hun": "ㄏㄨㄣ", "huo": "ㄏㄨㄛ", "jia": "ㄐㄧㄚ", "jie": "ㄐㄧㄝ", "jin": "ㄐㄧㄣ", "jiu": "ㄐㄧㄡ", "jue": "ㄐㄩㄝ",
+    "kai": "ㄎㄞ", "kan": "ㄎㄢ", "kao": "ㄎㄠ", "ken": "ㄎㄣ", "kiu": "ㄎㄧㄡ", "kou": "ㄎㄡ", "kua": "ㄎㄨㄚ", "kui": "ㄎㄨㄟ",
+    "kun": "ㄎㄨㄣ", "kuo": "ㄎㄨㄛ", "lai": "ㄌㄞ", "lan": "ㄌㄢ", "lao": "ㄌㄠ", "lei": "ㄌㄟ", "lia": "ㄌㄧㄚ", "lie": "ㄌㄧㄝ",
+    "lin": "ㄌㄧㄣ", "liu": "ㄌㄧㄡ", "lou": "ㄌㄡ", "lun": "ㄌㄨㄣ", "luo": "ㄌㄨㄛ", "lve": "ㄌㄩㄝ", "mai": "ㄇㄞ", "man": "ㄇㄢ",
+    "mao": "ㄇㄠ", "mei": "ㄇㄟ", "men": "ㄇㄣ", "mie": "ㄇㄧㄝ", "min": "ㄇㄧㄣ", "miu": "ㄇㄧㄡ", "mou": "ㄇㄡ", "nai": "ㄋㄞ",
+    "nan": "ㄋㄢ", "nao": "ㄋㄠ", "nei": "ㄋㄟ", "nen": "ㄋㄣ", "nie": "ㄋㄧㄝ", "nin": "ㄋㄧㄣ", "niu": "ㄋㄧㄡ", "nou": "ㄋㄡ",
+    "nui": "ㄋㄨㄟ", "nun": "ㄋㄨㄣ", "nuo": "ㄋㄨㄛ", "nve": "ㄋㄩㄝ", "pai": "ㄆㄞ", "pan": "ㄆㄢ", "pao": "ㄆㄠ", "pei": "ㄆㄟ",
+    "pen": "ㄆㄣ", "pia": "ㄆㄧㄚ", "pie": "ㄆㄧㄝ", "pin": "ㄆㄧㄣ", "pou": "ㄆㄡ", "qia": "ㄑㄧㄚ", "qie": "ㄑㄧㄝ", "qin": "ㄑㄧㄣ",
+    "qiu": "ㄑㄧㄡ", "que": "ㄑㄩㄝ", "qun": "ㄑㄩㄣ", "ran": "ㄖㄢ", "rao": "ㄖㄠ", "ren": "ㄖㄣ", "rou": "ㄖㄡ", "rui": "ㄖㄨㄟ",
+    "run": "ㄖㄨㄣ", "ruo": "ㄖㄨㄛ", "sai": "ㄙㄞ", "san": "ㄙㄢ", "sao": "ㄙㄠ", "sei": "ㄙㄟ", "sen": "ㄙㄣ", "sha": "ㄕㄚ",
+    "she": "ㄕㄜ", "shi": "ㄕ", "shu": "ㄕㄨ", "sou": "ㄙㄡ", "sui": "ㄙㄨㄟ", "sun": "ㄙㄨㄣ", "suo": "ㄙㄨㄛ", "tai": "ㄊㄞ",
+    "tan": "ㄊㄢ", "tao": "ㄊㄠ", "tie": "ㄊㄧㄝ", "tou": "ㄊㄡ", "tui": "ㄊㄨㄟ", "tun": "ㄊㄨㄣ", "tuo": "ㄊㄨㄛ", "wai": "ㄨㄞ",
+    "wan": "ㄨㄢ", "wei": "ㄨㄟ", "wen": "ㄨㄣ", "xia": "ㄒㄧㄚ", "xie": "ㄒㄧㄝ", "xin": "ㄒㄧㄣ", "xiu": "ㄒㄧㄡ", "xue": "ㄒㄩㄝ",
+    "xun": "ㄒㄩㄣ", "yai": "ㄧㄞ", "yan": "ㄧㄢ", "yao": "ㄧㄠ", "yin": "ㄧㄣ", "you": "ㄧㄡ", "yue": "ㄩㄝ", "yun": "ㄩㄣ",
+    "zai": "ㄗㄞ", "zan": "ㄗㄢ", "zao": "ㄗㄠ", "zei": "ㄗㄟ", "zen": "ㄗㄣ", "zha": "ㄓㄚ", "zhe": "ㄓㄜ", "zhi": "ㄓ", "zhu": "ㄓㄨ",
+    "zou": "ㄗㄡ", "zui": "ㄗㄨㄟ", "zun": "ㄗㄨㄣ", "zuo": "ㄗㄨㄛ", "ai": "ㄞ", "an": "ㄢ", "ao": "ㄠ", "ba": "ㄅㄚ", "bi": "ㄅㄧ",
+    "bo": "ㄅㄛ", "bu": "ㄅㄨ", "ca": "ㄘㄚ", "ce": "ㄘㄜ", "ci": "ㄘ", "cu": "ㄘㄨ", "da": "ㄉㄚ", "de": "ㄉㄜ", "di": "ㄉㄧ",
+    "du": "ㄉㄨ", "eh": "ㄝ", "ei": "ㄟ", "en": "ㄣ", "er": "ㄦ", "fa": "ㄈㄚ", "fo": "ㄈㄛ", "fu": "ㄈㄨ", "ga": "ㄍㄚ", "ge": "ㄍㄜ",
+    "gi": "ㄍㄧ", "gu": "ㄍㄨ", "ha": "ㄏㄚ", "he": "ㄏㄜ", "hu": "ㄏㄨ", "ji": "ㄐㄧ", "ju": "ㄐㄩ", "ka": "ㄎㄚ", "ke": "ㄎㄜ",
+    "ku": "ㄎㄨ", "la": "ㄌㄚ", "le": "ㄌㄜ", "li": "ㄌㄧ", "lo": "ㄌㄛ", "lu": "ㄌㄨ", "lv": "ㄌㄩ", "ma": "ㄇㄚ", "me": "ㄇㄜ",
+    "mi": "ㄇㄧ", "mo": "ㄇㄛ", "mu": "ㄇㄨ", "na": "ㄋㄚ", "ne": "ㄋㄜ", "ni": "ㄋㄧ", "nu": "ㄋㄨ", "nv": "ㄋㄩ", "ou": "ㄡ",
+    "pa": "ㄆㄚ", "pi": "ㄆㄧ", "po": "ㄆㄛ", "pu": "ㄆㄨ", "qi": "ㄑㄧ", "qu": "ㄑㄩ", "re": "ㄖㄜ", "ri": "ㄖ", "ru": "ㄖㄨ",
+    "sa": "ㄙㄚ", "se": "ㄙㄜ", "si": "ㄙ", "su": "ㄙㄨ", "ta": "ㄊㄚ", "te": "ㄊㄜ", "ti": "ㄊㄧ", "tu": "ㄊㄨ", "wa": "ㄨㄚ",
+    "wo": "ㄨㄛ", "wu": "ㄨ", "xi": "ㄒㄧ", "xu": "ㄒㄩ", "ya": "ㄧㄚ", "ye": "ㄧㄝ", "yi": "ㄧ", "yo": "ㄧㄛ", "yu": "ㄩ", "za": "ㄗㄚ",
+    "ze": "ㄗㄜ", "zi": "ㄗ", "zu": "ㄗㄨ", "a": "ㄚ", "e": "ㄜ", "o": "ㄛ", "q": "ㄑ",
+  ]
 
   /// 標準大千排列專用處理陣列。
   /// @--DISCUSSION--@
