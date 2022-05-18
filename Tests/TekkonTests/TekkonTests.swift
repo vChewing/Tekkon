@@ -86,9 +86,6 @@ final class TekkonTests: XCTestCase {
     composer.receiveKey(fromString: " ")  // 陰平
     XCTAssertEqual(composer.value, "ㄉㄧㄠ ")  // 這裡回傳的結果的陰平是空格
 
-    // Test Getting Real Composition
-    XCTAssertEqual(composer.realComposition, "ㄉㄧㄠ")  // 這裡回傳的結果的陰平無空格
-
     // Test Getting Displayed Composition
     XCTAssertEqual(composer.getComposition(), "ㄉㄧㄠ")
     XCTAssertEqual(composer.getComposition(isHanyuPinyin: true), "diao1")
@@ -134,9 +131,6 @@ final class TekkonTests: XCTestCase {
     composer.doBackSpace()
     composer.receiveKey(fromString: " ")  // 陰平
     XCTAssertEqual(composer.value, "ㄉㄧㄠ ")  // 這裡回傳的結果的陰平是空格
-
-    // Test Getting Real Composition
-    XCTAssertEqual(composer.realComposition, "ㄉㄧㄠ")  // 這裡回傳的結果的陰平無空格
 
     // Test Getting Displayed Composition
     XCTAssertEqual(composer.getComposition(), "ㄉㄧㄠ")

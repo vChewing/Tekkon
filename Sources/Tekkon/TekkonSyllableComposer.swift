@@ -204,14 +204,9 @@ public struct Tekkon {
 
     /// 內容值，會直接按照正確的順序拼裝自己的聲介韻調內容、再回傳。
     /// 注意：直接取這個參數的內容的話，陰平聲調會成為一個空格。
-    /// 如果是要取不帶空格的注音的話，請使用「.realComposition」而非「.value」。
+    /// 如果是要取不帶空格的注音的話，請使用「.getComposition()」而非「.value」。
     public var value: String {
       consonant.value + semivowel.value + vowel.value + intonation.value
-    }
-
-    /// 這是專門用來「生成用以進行詞庫檢索的 Key」的函數。
-    public var realComposition: String {
-      value.replacingOccurrences(of: " ", with: "")
     }
 
     /// 與 value 類似，這個函數就是用來決定輸入法組字區內顯示的注音/拼音內容，
@@ -221,14 +216,14 @@ public struct Tekkon {
     ///   - isTextBookStyle: 是否將輸出的注音/拼音結果轉成教科書排版格式。
     public func getComposition(isHanyuPinyin: Bool = false, isTextBookStyle: Bool = false) -> String {
       switch isHanyuPinyin {
-        case false:
+        case false: // 注音輸出的場合
           var valReturnZhuyin = value.replacingOccurrences(of: " ", with: "")
           if isTextBookStyle, valReturnZhuyin.contains("˙") {
             valReturnZhuyin = String(valReturnZhuyin.dropLast())
             valReturnZhuyin.insert("˙", at: valReturnZhuyin.startIndex)
           }
           return valReturnZhuyin
-        case true:
+        case true: // 拼音輸出的場合
           var valReturnPinyin = Tekkon.cnvPhonaToHanyuPinyin(target: value)
           if isTextBookStyle {
             valReturnPinyin = Tekkon.cnvHanyuPinyinToTextbookStyle(target: valReturnPinyin)
