@@ -2,11 +2,14 @@
 
 鐵恨引擎是用來處理注音輸入法並擊行為的一個模組。該倉庫乃威注音專案的弒神行動（Operation Longinus）的一部分。
 
-羅馬拼音輸入目前僅支援漢語拼音。
+羅馬拼音輸入目前僅支援漢語拼音、國音二式、耶魯拼音、華羅拼音、通用拼音。
+
+- 因為**韋氏拼音（威妥瑪拼音）輔音清濁不分的問題非常嚴重**、無法與注音符號形成逐一對應，故鐵恨引擎在技術上無法實現對韋氏拼音的支援。
 
 Tekkon Engine is a module made for processing combo-composition of stroke-based Mandarin Chinese phonetics (i.e. Zhuyin / Bopomofo). This repository is part of Operation Longinus of The vChewing Project.
 
-We support Hanyu Pinyin as the only romaji input mode at this moment.
+Regarding pinyin input support, we only support: Hanyu Pinyin, Secondary Pinyin, Yale Pinyin, Hualuo Pinyin, and Universal Pinyin.
+- **Tekkon is unable to provide Wade–Giles Pinyin support** since it cannot make a one-to-one mapping to all possible phonabet combinations (especially it cannot distinguish "k" and "g").
 
 ## 使用說明
 
@@ -92,25 +95,25 @@ class ctlInputMethod: IMKInputController {
 
 這裡分用途說明一下，請結合 TekkonTests.swift 理解。
 
-首先，InputMethodKit 的 updateClientComposingBuffer() 當中可以使用 _composer 的 getComposition() 函數。如果你想讓組字緩衝區內顯示拼音而不是注音的話，可以這樣改參數：
+首先，InputMethodKit 的 updateClientComposingBuffer() 當中可以使用 _composer 的 getInlineCompositionForIMK() 函數。如果你想讓組字緩衝區內顯示拼音而不是注音的話，可以這樣改參數：
 
 ```swift
-let XXX = getComposition(isHanyuPinyin: true)
+let XXX = getInlineCompositionForIMK(isHanyuPinyin: true)
 ```
 
-那原始資料值呢？
-
-雖然 _composer.value 可以拿到原始資料值，但是這個資料值裡面的陰平聲調是以一個西文半形空格來體現的、不太適用於某些場合。這時可以使用 _composer.realComposition 來獲取經過去空格處理的注音：假設說一款注音輸入法的詞庫索引是注音、且陰平聲調是「""」真空字串的話，就可以用 _composer.realComposition 來獲取注音。
-
-有些輸入法的詞庫的索引不是注音、而是漢語拼音（比如 RIME），此時恐怕需要做注音轉拼音的處理。這時，恐怕就需要您自己新增一個動態變數：
+那要是用來生成用來檢索的注音呢？畢竟這時不需要漢語拼音的實時輸入狀態顯示、而是要求一直都輸出準確的拼音結果。那就：
 
 ```swift
-    public var realCompositionInHanyuPinyin: String {
-      Tekkon.cnvPhonaToHanyuPinyin(target: valHanyuPinyin)
-    }
+let AAA = getComposition(isHanyuPinyin: false)  // 輸出注音
+let BBB = getComposition(isHanyuPinyin: false, isTextBookStyle: true)  // 輸出教科書排版的注音（先寫輕聲）
+let CCC = getComposition(isHanyuPinyin: true)  // 輸出漢語拼音二式（漢語拼音+數字標調）
+let DDD = getComposition(isHanyuPinyin: true, isTextBookStyle: true)  // 輸出漢語拼音一式（教科書排版的漢語拼音）
 ```
+
+那原始資料值呢？用 _composer.value 可以拿到原始資料值，但請注意：這個資料值裡面的注音的陰平聲調是以一個西文半形空格來體現的。
 
 各位可以自行修改一下 TekkonTests.swift 試試看，比如說在其檔案內新增一個 Extension 與測試函數：
+
 ```swift
 import XCTest
 
