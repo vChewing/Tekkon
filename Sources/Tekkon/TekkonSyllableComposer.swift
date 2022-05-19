@@ -96,7 +96,7 @@ public struct Tekkon {
   ]
 
   /// 引擎僅接受這些記號作為介母
-  public static let allowedsemivowels = ["ㄧ", "ㄨ", "ㄩ"]
+  public static let allowedSemivowels = ["ㄧ", "ㄨ", "ㄩ"]
 
   /// 引擎僅接受這些記號作為韻母
   public static let allowedVowels = [
@@ -109,7 +109,7 @@ public struct Tekkon {
 
   /// 引擎僅接受這些記號作為注音（聲介韻調四個集合加起來）
   public static var allowedPhonabets: [String] {
-    allowedConsonants + allowedsemivowels + allowedVowels + allowedIntonations
+    allowedConsonants + allowedSemivowels + allowedVowels + allowedIntonations
   }
 
   // MARK: - Phonabet Structure
@@ -155,7 +155,7 @@ public struct Tekkon {
     mutating func ensureType() {
       if Tekkon.allowedConsonants.contains(value) {
         type = .consonant
-      } else if Tekkon.allowedsemivowels.contains(value) {
+      } else if Tekkon.allowedSemivowels.contains(value) {
         type = .semivowel
       } else if Tekkon.allowedVowels.contains(value) {
         type = .vowel
