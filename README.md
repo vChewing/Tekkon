@@ -13,7 +13,7 @@ Tekkon Engine is a module made for processing combo-composition of stroke-based 
 
 Regarding pinyin input support, we only support: Hanyu Pinyin, Secondary Pinyin, Yale Pinyin, Hualuo Pinyin, and Universal Pinyin.
 
-- **Tekkon is unable to provide Wade–Giles Pinyin support** since it cannot make a one-to-one mapping to all possible phonabet combinations (especially it cannot distinguish "k" and "g").
+- **Tekkon is unable to provide Wade–Giles Pinyin support** since it is impossible to make one-to-one mappings to all possible phonabet combinations (especially it cannot distinguish "k" and "g").
 
 ## 使用說明
 
