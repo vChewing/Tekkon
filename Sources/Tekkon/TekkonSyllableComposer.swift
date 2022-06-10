@@ -214,7 +214,7 @@ public struct Tekkon {
     /// 聲調。
     public var intonation: Phonabet = ""
 
-    /// 為拉丁字母專用的組音區
+    /// 為拉丁字母專用的組音區。
     public var romajiBuffer: String = ""
 
     /// 注音排列種類。預設情況下是大千排列（Windows / macOS 預設注音排列）。
@@ -279,7 +279,7 @@ public struct Tekkon {
       }
     }
 
-    /// 注拼槽內容是否為空。
+    /// 注拼槽內容是否可唸。
     public var isPronouncable: Bool {
       !vowel.isEmpty || !semivowel.isEmpty || !consonant.isEmpty
     }
@@ -356,7 +356,7 @@ public struct Tekkon {
               intonation = Phonabet(theTone)
             }
           } else {
-            // 為了防止 romajiBuffer 越敲越長帶來算力負擔，這裡讓它在要溢出時自動丟掉先取音頭。
+            // 為了防止 romajiBuffer 越敲越長帶來算力負擔，這裡讓它在要溢出時自動丟掉最早輸入的音頭。
             if romajiBuffer.count > 5 {
               romajiBuffer = String(romajiBuffer.dropFirst())
             }
@@ -364,7 +364,7 @@ public struct Tekkon {
             receiveSequence(romajiBufferBackup, isRomaji: true)
             romajiBuffer = romajiBufferBackup
           }
-        default: receiveKey(fromPhonabet: translate(key: String(input)))
+        default: receiveKey(fromPhonabet: translate(key: input))
       }
     }
 
@@ -532,8 +532,7 @@ public struct Tekkon {
     /// - Parameters:
     ///   - key: 傳入的 String 訊號。
     mutating func handleEten26(key: String = "") -> String {
-      var strReturn = ""
-      strReturn = Tekkon.mapEten26StaticKeys[key] ?? ""
+      var strReturn = Tekkon.mapEten26StaticKeys[key] ?? ""
       let incomingPhonabet = Phonabet(strReturn)
 
       switch key {
@@ -616,8 +615,7 @@ public struct Tekkon {
     /// - Parameters:
     ///   - key: 傳入的 String 訊號。
     mutating func handleHsu(key: String = "") -> String {
-      var strReturn = ""
-      strReturn = Tekkon.mapHsuStaticKeys[key] ?? ""
+      var strReturn = Tekkon.mapHsuStaticKeys[key] ?? ""
       let incomingPhonabet = Phonabet(strReturn)
 
       if key == " ", value == "ㄋ" {
@@ -740,8 +738,7 @@ public struct Tekkon {
     /// - Parameters:
     ///   - key: 傳入的 String 訊號。
     mutating func handleDachen26(key: String = "") -> String {
-      var strReturn = ""
-      strReturn = Tekkon.mapDachenCP26StaticKeys[key] ?? ""
+      var strReturn = Tekkon.mapDachenCP26StaticKeys[key] ?? ""
 
       switch key {
         case "e": if isPronouncable { intonation = "ˊ" } else { consonant = "ㄍ" }
