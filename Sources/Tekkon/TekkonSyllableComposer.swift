@@ -619,7 +619,7 @@ public struct Tekkon {
       let incomingPhonabet = Phonabet(strReturn)
 
       if key == " ", value == "ㄋ" {
-        consonant = ""
+        consonant.clear()
         vowel = "ㄣ"
       }
 
@@ -717,7 +717,7 @@ public struct Tekkon {
           consonant.selfReplace("ㄒ", "ㄕ")
         }
         if consonant == "ㄏ", semivowel.isEmpty, vowel.isEmpty {
-          consonant = ""
+          consonant.clear()
           vowel = "ㄛ"
         }
       }
@@ -756,11 +756,11 @@ public struct Tekkon {
         case "w": if consonant.isEmpty || consonant == "ㄉ" { consonant = "ㄊ" } else { consonant = "ㄉ" }
         case "m":
           if semivowel == "ㄩ", vowel != "ㄡ" {
-            semivowel = ""
+            semivowel.clear()
             vowel = "ㄡ"
           } else if semivowel != "ㄩ", vowel == "ㄡ" {
             semivowel = "ㄩ"
-            vowel = ""
+            vowel.clear()
           } else if !semivowel.isEmpty {
             vowel = "ㄡ"
           } else {
@@ -768,13 +768,13 @@ public struct Tekkon {
           }
         case "u":
           if semivowel == "ㄧ", vowel != "ㄚ" {
-            semivowel = ""
+            semivowel.clear()
             vowel = "ㄚ"
           } else if semivowel != "ㄧ", vowel == "ㄚ" {
             semivowel = "ㄧ"
           } else if semivowel == "ㄧ", vowel == "ㄚ" {
-            semivowel = ""
-            vowel = ""
+            semivowel.clear()
+            vowel.clear()
           } else if !semivowel.isEmpty {
             vowel = "ㄚ"
           } else {
