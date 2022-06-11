@@ -140,6 +140,7 @@ public struct Tekkon {
     /// 自我清空內容。
     public mutating func clear() {
       valueStorage = ""
+      type = .null
     }
 
     /// 自我變換資料值。
