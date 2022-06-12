@@ -140,6 +140,7 @@ public struct Tekkon {
     /// 自我清空內容。
     public mutating func clear() {
       valueStorage = ""
+      type = .null
     }
 
     /// 自我變換資料值。
@@ -214,7 +215,7 @@ public struct Tekkon {
     /// 聲調。
     public var intonation: Phonabet = ""
 
-    /// 為拉丁字母專用的組音區
+    /// 為拉丁字母專用的組音區。
     public var romajiBuffer: String = ""
 
     /// 注音排列種類。預設情況下是大千排列（Windows / macOS 預設注音排列）。
@@ -279,7 +280,7 @@ public struct Tekkon {
       }
     }
 
-    /// 注拼槽內容是否為空。
+    /// 注拼槽內容是否可唸。
     public var isPronouncable: Bool {
       !vowel.isEmpty || !semivowel.isEmpty || !consonant.isEmpty
     }
@@ -356,7 +357,7 @@ public struct Tekkon {
               intonation = Phonabet(theTone)
             }
           } else {
-            // 為了防止 romajiBuffer 越敲越長帶來算力負擔，這裡讓它在要溢出時自動丟掉先取音頭。
+            // 為了防止 romajiBuffer 越敲越長帶來算力負擔，這裡讓它在要溢出時自動丟掉最早輸入的音頭。
             if romajiBuffer.count > 5 {
               romajiBuffer = String(romajiBuffer.dropFirst())
             }
@@ -364,7 +365,7 @@ public struct Tekkon {
             receiveSequence(romajiBufferBackup, isRomaji: true)
             romajiBuffer = romajiBufferBackup
           }
-        default: receiveKey(fromPhonabet: translate(key: String(input)))
+        default: receiveKey(fromPhonabet: translate(key: input))
       }
     }
 
@@ -532,8 +533,7 @@ public struct Tekkon {
     /// - Parameters:
     ///   - key: 傳入的 String 訊號。
     mutating func handleEten26(key: String = "") -> String {
-      var strReturn = ""
-      strReturn = Tekkon.mapEten26StaticKeys[key] ?? ""
+      var strReturn = Tekkon.mapEten26StaticKeys[key] ?? ""
       let incomingPhonabet = Phonabet(strReturn)
 
       switch key {
@@ -616,12 +616,11 @@ public struct Tekkon {
     /// - Parameters:
     ///   - key: 傳入的 String 訊號。
     mutating func handleHsu(key: String = "") -> String {
-      var strReturn = ""
-      strReturn = Tekkon.mapHsuStaticKeys[key] ?? ""
+      var strReturn = Tekkon.mapHsuStaticKeys[key] ?? ""
       let incomingPhonabet = Phonabet(strReturn)
 
       if key == " ", value == "ㄋ" {
-        consonant = ""
+        consonant.clear()
         vowel = "ㄣ"
       }
 
@@ -719,7 +718,7 @@ public struct Tekkon {
           consonant.selfReplace("ㄒ", "ㄕ")
         }
         if consonant == "ㄏ", semivowel.isEmpty, vowel.isEmpty {
-          consonant = ""
+          consonant.clear()
           vowel = "ㄛ"
         }
       }
@@ -740,8 +739,7 @@ public struct Tekkon {
     /// - Parameters:
     ///   - key: 傳入的 String 訊號。
     mutating func handleDachen26(key: String = "") -> String {
-      var strReturn = ""
-      strReturn = Tekkon.mapDachenCP26StaticKeys[key] ?? ""
+      var strReturn = Tekkon.mapDachenCP26StaticKeys[key] ?? ""
 
       switch key {
         case "e": if isPronouncable { intonation = "ˊ" } else { consonant = "ㄍ" }
@@ -759,11 +757,11 @@ public struct Tekkon {
         case "w": if consonant.isEmpty || consonant == "ㄉ" { consonant = "ㄊ" } else { consonant = "ㄉ" }
         case "m":
           if semivowel == "ㄩ", vowel != "ㄡ" {
-            semivowel = ""
+            semivowel.clear()
             vowel = "ㄡ"
           } else if semivowel != "ㄩ", vowel == "ㄡ" {
             semivowel = "ㄩ"
-            vowel = ""
+            vowel.clear()
           } else if !semivowel.isEmpty {
             vowel = "ㄡ"
           } else {
@@ -771,13 +769,13 @@ public struct Tekkon {
           }
         case "u":
           if semivowel == "ㄧ", vowel != "ㄚ" {
-            semivowel = ""
+            semivowel.clear()
             vowel = "ㄚ"
           } else if semivowel != "ㄧ", vowel == "ㄚ" {
             semivowel = "ㄧ"
           } else if semivowel == "ㄧ", vowel == "ㄚ" {
-            semivowel = ""
-            vowel = ""
+            semivowel.clear()
+            vowel.clear()
           } else if !semivowel.isEmpty {
             vowel = "ㄚ"
           } else {
@@ -834,6 +832,9 @@ public struct Tekkon {
     return targetConverted
   }
 
+  /// 漢語拼音數字標調式轉漢語拼音教科書格式，要求陰平必須是數字 1。
+  /// - Parameters:
+  ///   - target: 傳入的 String 對象物件。
   static func cnvHanyuPinyinToTextbookStyle(target: String) -> String {
     var targetConverted = target
     for pair in arrHanyuPinyinTextbookStyleConversionTable {
