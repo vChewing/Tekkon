@@ -55,8 +55,8 @@ final class TekkonTests: XCTestCase {
     result = composer.inputValidityCheck(key: 0x002F)
     XCTAssert(result == true)
 
-    // Testing Correct Eten26 Key
-    composer.ensureParser(arrange: .ofEten26)
+    // Testing Correct ETen26 Key
+    composer.ensureParser(arrange: .ofETen26)
     result = composer.inputValidityCheck(key: 0x0062)
     XCTAssert(result == true)
 
@@ -389,9 +389,9 @@ final class TekkonTests: XCTestCase {
     XCTAssertEqual(composer.convertSequenceToRawComposition("qqiir"), "ㄅㄞˇ")
   }
 
-  func testEten26Keys() throws {
-    // Testing handleEten26()
-    var composer = Tekkon.Composer(arrange: .ofEten26)
+  func testETen26Keys() throws {
+    // Testing handleETen26()
+    var composer = Tekkon.Composer(arrange: .ofETen26)
     XCTAssertEqual(composer.convertSequenceToRawComposition("ket"), "ㄎㄧㄤ")
     // XCTAssertEqual(composer.convertSequenceToRawComposition("vezf"), "ㄍㄧㄠˊ")
     // XCTAssertEqual(composer.convertSequenceToRawComposition("ven"), "ㄍㄧㄣ")
