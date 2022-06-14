@@ -2,10 +2,12 @@
 
 該引擎已經實裝於基於純 Swift 語言完成的 **威注音輸入法** 內，歡迎好奇者嘗試：[GitHub](https://github.com/ShikiSuen/vChewing-macOS ) | [Gitee](https://gitee.com/vchewing/vChewing-macOS ) 。
 
+- Gitee: [Swift](https://gitee.com/vChewing/Tekkon) | [C#](https://gitee.com/vChewing/TekkonNT) | [C++](https://gitee.com/vChewing/TekkonCC)
+- GitHub: [Swift](https://github.com/ShikiSuen/Tekkon) | [C#](https://github.com/ShikiSuen/TekkonNT) | [C++](https://github.com/ShikiSuen/TekkonCC)
+
 鐵恨引擎是用來處理注音輸入法並擊行為的一個模組。該倉庫乃威注音專案的弒神行動（Operation Longinus）的一部分。
 
 Tekkon Engine is a module made for processing combo-composition of stroke-based Mandarin Chinese phonetics (i.e. Zhuyin / Bopomofo). This repository is part of Operation Longinus of The vChewing Project.
-
 
 羅馬拼音輸入目前僅支援漢語拼音、國音二式、耶魯拼音、華羅拼音、通用拼音。
 
