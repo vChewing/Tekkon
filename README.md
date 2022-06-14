@@ -56,12 +56,12 @@ class ctlInputMethod: IMKInputController {
     switch mgrPrefs.mandarinParser {
       case MandarinParser.ofStandard.rawValue:
         _composer.ensureParser(arrange: .ofDachen)  // 大千
-      case MandarinParser.ofEten.rawValue:
-        _composer.ensureParser(arrange: .ofEten)  // 倚天傳統
+      case MandarinParser.ofETen.rawValue:
+        _composer.ensureParser(arrange: .ofETen)  // 倚天傳統
       case MandarinParser.ofHsu.rawValue:
         _composer.ensureParser(arrange: .ofHsu)  // 許氏國音
-      case MandarinParser.ofEten26.rawValue:
-        _composer.ensureParser(arrange: .ofEten26)  // 倚天忘形26鍵
+      case MandarinParser.ofETen26.rawValue:
+        _composer.ensureParser(arrange: .ofETen26)  // 倚天忘形26鍵
       case MandarinParser.ofIBM.rawValue:
         _composer.ensureParser(arrange: .ofIBM)  // IBM
       case MandarinParser.ofMiTAC.rawValue:

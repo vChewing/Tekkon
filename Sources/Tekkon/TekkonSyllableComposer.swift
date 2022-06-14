@@ -41,8 +41,8 @@ public struct Tekkon {
   public enum MandarinParser: Int {
     case ofDachen = 0
     case ofDachen26 = 1
-    case ofEten = 2
-    case ofEten26 = 3
+    case ofETen = 2
+    case ofETen26 = 3
     case ofHsu = 4
     case ofIBM = 5
     case ofMiTAC = 6
@@ -60,11 +60,11 @@ public struct Tekkon {
           return "Dachen"
         case .ofDachen26:
           return "Dachen26"
-        case .ofEten:
+        case .ofETen:
           return "ETen"
         case .ofHsu:
           return "Hsu"
-        case .ofEten26:
+        case .ofETen26:
           return "ETen26"
         case .ofIBM:
           return "IBM"
@@ -322,12 +322,12 @@ public struct Tekkon {
             return Tekkon.mapQwertyDachen[input] != nil
           case .ofDachen26:
             return Tekkon.mapDachenCP26StaticKeys[input] != nil
-          case .ofEten:
-            return Tekkon.mapQwertyEtenTraditional[input] != nil
+          case .ofETen:
+            return Tekkon.mapQwertyETenTraditional[input] != nil
           case .ofHsu:
             return Tekkon.mapHsuStaticKeys[input] != nil
-          case .ofEten26:
-            return Tekkon.mapEten26StaticKeys[input] != nil
+          case .ofETen26:
+            return Tekkon.mapETen26StaticKeys[input] != nil
           case .ofIBM:
             return Tekkon.mapQwertyIBM[input] != nil
           case .ofMiTAC:
@@ -507,12 +507,12 @@ public struct Tekkon {
           return Tekkon.mapQwertyDachen[key] ?? ""
         case .ofDachen26:
           return handleDachen26(key: key)
-        case .ofEten:
-          return Tekkon.mapQwertyEtenTraditional[key] ?? ""
+        case .ofETen:
+          return Tekkon.mapQwertyETenTraditional[key] ?? ""
         case .ofHsu:
           return handleHsu(key: key)
-        case .ofEten26:
-          return handleEten26(key: key)
+        case .ofETen26:
+          return handleETen26(key: key)
         case .ofIBM:
           return Tekkon.mapQwertyIBM[key] ?? ""
         case .ofMiTAC:
@@ -532,8 +532,8 @@ public struct Tekkon {
     /// 回傳結果是空字串的話，不要緊，因為該函數內部已經處理過分配過程了。
     /// - Parameters:
     ///   - key: 傳入的 String 訊號。
-    mutating func handleEten26(key: String = "") -> String {
-      var strReturn = Tekkon.mapEten26StaticKeys[key] ?? ""
+    mutating func handleETen26(key: String = "") -> String {
+      var strReturn = Tekkon.mapETen26StaticKeys[key] ?? ""
       let incomingPhonabet = Phonabet(strReturn)
 
       switch key {
@@ -1297,14 +1297,14 @@ public struct Tekkon {
   ///
   /// 在這裡將二十六個字母寫全，也只是為了方便做 validity check。
   /// 這裡提前對ㄓ/ㄍ/ㄕ做處理，然後再用程式判斷介母類型、據此判斷是否需要換成ㄒ/ㄑ/ㄐ。
-  static let mapEten26StaticKeys: [String: String] = [
+  static let mapETen26StaticKeys: [String: String] = [
     "a": "ㄚ", "b": "ㄅ", "c": "ㄕ", "d": "ㄉ", "e": "ㄧ", "f": "ㄈ", "g": "ㄓ", "h": "ㄏ", "i": "ㄞ", "j": "ㄖ", "k": "ㄎ",
     "l": "ㄌ", "m": "ㄇ", "n": "ㄋ", "o": "ㄛ", "p": "ㄆ", "q": "ㄗ", "r": "ㄜ", "s": "ㄙ", "t": "ㄊ", "u": "ㄩ", "v": "ㄍ",
     "w": "ㄘ", "x": "ㄨ", "y": "ㄔ", "z": "ㄠ", " ": " ",
   ]
 
   /// 倚天傳統排列專用處理陣列。
-  static let mapQwertyEtenTraditional: [String: String] = [
+  static let mapQwertyETenTraditional: [String: String] = [
     "'": "ㄘ", ",": "ㄓ", "-": "ㄥ", ".": "ㄔ", "/": "ㄕ", "0": "ㄤ", "1": "˙", "2": "ˊ", "3": "ˇ", "4": "ˋ", "7": "ㄑ",
     "8": "ㄢ", "9": "ㄣ", ";": "ㄗ", "=": "ㄦ", "a": "ㄚ", "b": "ㄅ", "c": "ㄒ", "d": "ㄉ", "e": "ㄧ", "f": "ㄈ", "g": "ㄐ",
     "h": "ㄏ", "i": "ㄞ", "j": "ㄖ", "k": "ㄎ", "l": "ㄌ", "m": "ㄇ", "n": "ㄋ", "o": "ㄛ", "p": "ㄆ", "q": "ㄟ", "r": "ㄜ",
