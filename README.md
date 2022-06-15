@@ -211,7 +211,7 @@ if !skipPhoneticHandling && _composer.inputValidityCheck(key: charCode) {
   keyConsumedByReading = true
 
   // If we have a tone marker, we have to insert the reading to the
-  // builder in other words, if we don't have a tone marker, we just
+  // compositor in other words, if we don't have a tone marker, we just
   // update the composing buffer.
   // 沒有調號的話，只需要 updateClientComposingBuffer() 且終止處理（return true）即可。
   // 有調號的話，則不需要這樣處理，轉而繼續在此之後的處理。
@@ -247,13 +247,13 @@ if composeReading {  // 符合按鍵組合條件
     _composer.clear()  // 清空注拼槽的內容
     // 根據「天權星引擎 (威注音) 或 Gramambular (小麥) 的組字器是否為空」來判定回呼哪一種狀態
     stateCallback(
-      (getBuilderLength() == 0) ? InputState.EmptyIgnoringPreviousState() : buildInputtingState())
+      (getCompositorLength() == 0) ? InputState.EmptyIgnoringPreviousState() : buildInputtingState())
     return true  // 向 IMK 報告說這個按鍵訊號已經被輸入法攔截處理了
   }
 
   // ... and insert it into the grid...
   // 將該讀音插入至天權星（或 Gramambular）組字器內的軌格當中
-  insertReadingToBuilderAtCursor(reading: reading)
+  insertReadingToCompositorAtCursor(reading: reading)
 
   // ... then walk the grid...
   // 讓組字器反爬軌格
