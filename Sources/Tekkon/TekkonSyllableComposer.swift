@@ -254,7 +254,7 @@ public struct Tekkon {
     // 該函式僅用來獲取給 macOS InputMethod Kit 的內文組字區使用的顯示字串。
     /// - Parameters:
     ///   - isHanyuPinyin: 是否將輸出結果轉成漢語拼音。
-    public func getInlineCompositionForIMK(isHanyuPinyin: Bool = false) -> String {
+    public func getInlineCompositionForDisplay(isHanyuPinyin: Bool = false) -> String {
       switch parser {
         case .ofHanyuPinyin, .ofSecondaryPinyin, .ofYalePinyin, .ofHualuoPinyin, .ofUniversalPinyin:
           var toneReturned = ""
