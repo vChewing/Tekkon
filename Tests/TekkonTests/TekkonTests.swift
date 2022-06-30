@@ -90,7 +90,7 @@ final class TekkonTests: XCTestCase {
     XCTAssertEqual(composer.getComposition(), "ㄉㄧㄠ")
     XCTAssertEqual(composer.getComposition(isHanyuPinyin: true), "diao1")
     XCTAssertEqual(composer.getComposition(isHanyuPinyin: true, isTextBookStyle: true), "diāo")
-    XCTAssertEqual(composer.getInlineCompositionForIMK(isHanyuPinyin: true), "diao1")
+    XCTAssertEqual(composer.getInlineCompositionForDisplay(isHanyuPinyin: true), "diao1")
 
     // Test Tone 5
     composer.receiveKey(fromString: "7")  // 輕聲
@@ -136,7 +136,7 @@ final class TekkonTests: XCTestCase {
     XCTAssertEqual(composer.getComposition(), "ㄉㄧㄠ")
     XCTAssertEqual(composer.getComposition(isHanyuPinyin: true), "diao1")
     XCTAssertEqual(composer.getComposition(isHanyuPinyin: true, isTextBookStyle: true), "diāo")
-    XCTAssertEqual(composer.getInlineCompositionForIMK(isHanyuPinyin: true), "diao1")
+    XCTAssertEqual(composer.getInlineCompositionForDisplay(isHanyuPinyin: true), "diao1")
 
     // Test Tone 5
     composer.receiveKey(fromString: "7")  // 輕聲
@@ -184,7 +184,7 @@ final class TekkonTests: XCTestCase {
     XCTAssertEqual(composer.getComposition(), "ㄑㄩㄥ")
     XCTAssertEqual(composer.getComposition(isHanyuPinyin: true), "qiong1")
     XCTAssertEqual(composer.getComposition(isHanyuPinyin: true, isTextBookStyle: true), "qiōng")
-    XCTAssertEqual(composer.getInlineCompositionForIMK(isHanyuPinyin: true), "chiung1")
+    XCTAssertEqual(composer.getInlineCompositionForDisplay(isHanyuPinyin: true), "chiung1")
 
     // Test Tone 5
     composer.receiveKey(fromString: "7")  // 輕聲
@@ -232,7 +232,7 @@ final class TekkonTests: XCTestCase {
     XCTAssertEqual(composer.getComposition(), "ㄑㄩㄥ")
     XCTAssertEqual(composer.getComposition(isHanyuPinyin: true), "qiong1")
     XCTAssertEqual(composer.getComposition(isHanyuPinyin: true, isTextBookStyle: true), "qiōng")
-    XCTAssertEqual(composer.getInlineCompositionForIMK(isHanyuPinyin: true), "chyung1")
+    XCTAssertEqual(composer.getInlineCompositionForDisplay(isHanyuPinyin: true), "chyung1")
 
     // Test Tone 5
     composer.receiveKey(fromString: "7")  // 輕聲
@@ -280,7 +280,7 @@ final class TekkonTests: XCTestCase {
     XCTAssertEqual(composer.getComposition(), "ㄑㄩㄥ")
     XCTAssertEqual(composer.getComposition(isHanyuPinyin: true), "qiong1")
     XCTAssertEqual(composer.getComposition(isHanyuPinyin: true, isTextBookStyle: true), "qiōng")
-    XCTAssertEqual(composer.getInlineCompositionForIMK(isHanyuPinyin: true), "chyong1")
+    XCTAssertEqual(composer.getInlineCompositionForDisplay(isHanyuPinyin: true), "chyong1")
 
     // Test Tone 5
     composer.receiveKey(fromString: "7")  // 輕聲
@@ -327,7 +327,7 @@ final class TekkonTests: XCTestCase {
     XCTAssertEqual(composer.getComposition(), "ㄑㄩㄥ")
     XCTAssertEqual(composer.getComposition(isHanyuPinyin: true), "qiong1")
     XCTAssertEqual(composer.getComposition(isHanyuPinyin: true, isTextBookStyle: true), "qiōng")
-    XCTAssertEqual(composer.getInlineCompositionForIMK(isHanyuPinyin: true), "cyong1")
+    XCTAssertEqual(composer.getInlineCompositionForDisplay(isHanyuPinyin: true), "cyong1")
 
     // Test Tone 5
     composer.receiveKey(fromString: "7")  // 輕聲

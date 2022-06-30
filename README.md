@@ -111,10 +111,10 @@ class ctlInputMethod: IMKInputController {
 
 這裡分用途說明一下，請結合 TekkonTests.swift 理解。
 
-首先，InputMethodKit 的 updateClientComposingBuffer() 當中可以使用 _composer 的 getInlineCompositionForIMK() 函數。如果你想讓組字緩衝區內顯示拼音而不是注音的話，可以這樣改參數：
+首先，InputMethodKit 的 updateClientComposingBuffer() 當中可以使用 _composer 的 getInlineCompositionForDisplay() 函數。如果你想讓組字緩衝區內顯示拼音而不是注音的話，可以這樣改參數：
 
 ```swift
-let XXX = getInlineCompositionForIMK(isHanyuPinyin: true)
+let XXX = getInlineCompositionForDisplay(isHanyuPinyin: true)
 ```
 
 那要是用來生成用來檢索的注音呢？畢竟這時不需要漢語拼音的實時輸入狀態顯示、而是要求一直都輸出準確的拼音結果。那就：
