@@ -365,7 +365,18 @@ public struct Tekkon {
             receiveSequence(romajiBufferBackup, isRomaji: true)
             romajiBuffer = romajiBufferBackup
           }
-        default: receiveKey(fromPhonabet: translate(key: input))
+        default:
+          let incomingPhonabetString = translate(key: input)
+          switch incomingPhonabetString {
+            case "ㄛ":
+              if "ㄅㄆㄇㄈ".contains(consonant.value), semivowel.value == "ㄨ" { semivowel.clear() }
+            case "ㄨ":
+              if "ㄅㄆㄇㄈ".contains(consonant.value), vowel.value == "ㄛ" { vowel.clear() }
+            case "ㄅ", "ㄆ", "ㄇ", "ㄈ":
+              if semivowel.value + vowel.value == "ㄨㄛ" { semivowel.clear() }
+            default: break
+          }
+          receiveKey(fromPhonabet: incomingPhonabetString)
       }
     }
 
