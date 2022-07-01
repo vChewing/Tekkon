@@ -225,7 +225,16 @@ public struct Tekkon {
     /// 注意：直接取這個參數的內容的話，陰平聲調會成為一個空格。
     /// 如果是要取不帶空格的注音的話，請使用「.getComposition()」而非「.value」。
     public var value: String {
-      consonant.value + semivowel.value + vowel.value + intonation.value
+      if semivowel.value + vowel.value == "ㄨㄛ" {
+        switch consonant.value {
+          case "ㄅ": return "ㄅㄛ" + intonation.value
+          case "ㄆ": return "ㄆㄛ" + intonation.value
+          case "ㄇ": return "ㄇㄛ" + intonation.value
+          case "ㄈ": return "ㄈㄛ" + intonation.value
+          default: break
+        }
+      }
+      return consonant.value + semivowel.value + vowel.value + intonation.value
     }
 
     /// 與 value 類似，這個函式就是用來決定輸入法組字區內顯示的注音/拼音內容，
