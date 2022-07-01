@@ -387,6 +387,15 @@ public struct Tekkon {
     ///   - fromPhonabet: 傳入的單個注音符號字串。
     public mutating func receiveKey(fromPhonabet phonabet: String = "") {
       let thePhone: Phonabet = .init(phonabet)
+      switch phonabet {
+        case "ㄛ":
+          if "ㄅㄆㄇㄈ".contains(consonant.value), semivowel.value == "ㄨ" { semivowel.clear() }
+        case "ㄨ":
+          if "ㄅㄆㄇㄈ".contains(consonant.value), vowel.value == "ㄛ" { vowel.clear() }
+        case "ㄅ", "ㄆ", "ㄇ", "ㄈ":
+          if semivowel.value + vowel.value == "ㄨㄛ" { semivowel.clear() }
+        default: break
+      }
       switch thePhone.type {
         case .consonant: consonant = thePhone
         case .semivowel: semivowel = thePhone
