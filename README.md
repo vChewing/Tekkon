@@ -1,9 +1,9 @@
 # Tekkon Engine 鐵恨引擎
 
-該引擎已經實裝於基於純 Swift 語言完成的 **威注音輸入法** 內，歡迎好奇者嘗試：[GitHub](https://github.com/ShikiSuen/vChewing-macOS ) | [Gitee](https://gitee.com/vchewing/vChewing-macOS ) 。
+該引擎已經實裝於基於純 Swift 語言完成的 **威注音輸入法** 內，歡迎好奇者嘗試：[GitHub](https://github.com/vChewing/vChewing-macOS ) | [Gitee](https://gitee.com/vchewing/vChewing-macOS ) 。
 
 - Gitee: [Swift](https://gitee.com/vChewing/Tekkon) | [C#](https://gitee.com/vChewing/TekkonNT) | [C++](https://gitee.com/vChewing/TekkonCC)
-- GitHub: [Swift](https://github.com/ShikiSuen/Tekkon) | [C#](https://github.com/ShikiSuen/TekkonNT) | [C++](https://github.com/ShikiSuen/TekkonCC)
+- GitHub: [Swift](https://github.com/vChewing/Tekkon) | [C#](https://github.com/vChewing/TekkonNT) | [C++](https://github.com/vChewing/TekkonCC)
 
 鐵恨引擎是用來處理注音輸入法並擊行為的一個模組。該倉庫乃威注音專案的弒神行動（Operation Longinus）的一部分。
 
@@ -283,20 +283,3 @@ if composeReading {  // 符合按鍵組合條件
 	- Swift programmer: Shiki Suen
 
 $ EOF.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
