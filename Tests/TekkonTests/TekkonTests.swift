@@ -123,6 +123,19 @@ final class TekkonTests: XCTestCase {
     XCTAssertEqual(composer.getComposition(), "ㄇㄛ")
     composer.receiveKey(fromString: "z")
     XCTAssertEqual(composer.getComposition(), "ㄈㄛ")
+
+    // Testing exceptions of handling "ㄅㄨㄥ ㄆㄨㄥ ㄇㄨㄥ ㄈㄨㄥ"
+    composer.clear()
+    composer.receiveKey(fromString: "1")
+    composer.receiveKey(fromString: "j")
+    composer.receiveKey(fromString: "/")
+    XCTAssertEqual(composer.getComposition(), "ㄅㄥ")
+    composer.receiveKey(fromString: "q")
+    XCTAssertEqual(composer.getComposition(), "ㄆㄥ")
+    composer.receiveKey(fromString: "a")
+    XCTAssertEqual(composer.getComposition(), "ㄇㄥ")
+    composer.receiveKey(fromString: "z")
+    XCTAssertEqual(composer.getComposition(), "ㄈㄥ")
   }
 
   func testHanyuinyinKeyReceivingAndCompositions() throws {

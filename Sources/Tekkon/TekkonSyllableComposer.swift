@@ -388,12 +388,12 @@ public struct Tekkon {
     public mutating func receiveKey(fromPhonabet phonabet: String = "") {
       let thePhone: Phonabet = .init(phonabet)
       switch phonabet {
-        case "ㄛ":
+        case "ㄛ", "ㄥ":
           if "ㄅㄆㄇㄈ".contains(consonant.value), semivowel.value == "ㄨ" { semivowel.clear() }
         case "ㄨ":
-          if "ㄅㄆㄇㄈ".contains(consonant.value), vowel.value == "ㄛ" { vowel.clear() }
+          if "ㄅㄆㄇㄈ".contains(consonant.value), "ㄛㄥ".contains(vowel.value) { vowel.clear() }
         case "ㄅ", "ㄆ", "ㄇ", "ㄈ":
-          if semivowel.value + vowel.value == "ㄨㄛ" { semivowel.clear() }
+          if ["ㄨㄛ", "ㄨㄥ"].contains(semivowel.value + vowel.value) { semivowel.clear() }
         default: break
       }
       switch thePhone.type {
