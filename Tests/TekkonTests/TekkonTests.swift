@@ -136,6 +136,9 @@ final class TekkonTests: XCTestCase {
     XCTAssertEqual(composer.getComposition(), "ㄇㄥ")
     composer.receiveKey(fromString: "z")
     XCTAssertEqual(composer.getComposition(), "ㄈㄥ")
+
+    // Testing tool functions
+    XCTAssertEqual(Tekkon.restoreToneOneInZhuyinKey(target: "ㄉㄧㄠ"), "ㄉㄧㄠ1");
   }
 
   func testHanyuinyinKeyReceivingAndCompositions() throws {
