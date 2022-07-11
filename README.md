@@ -17,7 +17,7 @@ Regarding pinyin input support, we only support: Hanyu Pinyin, Secondary Pinyin,
 
 - **Tekkon is unable to provide Wade–Giles Pinyin support** since it is impossible to make one-to-one mappings to all possible phonabet combinations (especially it cannot distinguish "k" and "g").
 
-> 注意：該引擎會將「ㄅㄨㄥ ㄆㄨㄥ ㄇㄨㄥ ㄈㄨㄥ」這四種讀音自動轉換成「ㄅㄥ ㄆㄥ ㄇㄥ ㄈㄥ」、將「ㄅㄨㄛ ㄆㄨㄛ ㄇㄨㄛ ㄈㄨㄛ」這四種讀音自動轉換成「ㄅㄛ ㄆㄛ ㄇㄛ ㄈㄛ」。如果您正在開發的輸入法的詞庫內的「甮」字的讀音沒有從「ㄈㄨㄥˋ」改成「ㄈㄥˋ」、或者說需要保留「ㄈㄨㄥˋ」的讀音的話，請按需修改「receiveKey(fromPhonabet:)」函數當中的相關步驟、來跳過該轉換。該情形為十分罕見之情形。類似情形則是台澎金馬審音的慣用讀音「ㄌㄩㄢˊ」，因為使用者眾、所以不會被該引擎自動轉換成「ㄌㄨㄢˊ」。威注音輸入法內部已經從辭典角度做了處理、允許在敲「ㄌㄨㄢˊ」的時候出現以「ㄌㄩㄢˊ」為讀音的漢字。我們鼓勵輸入法開發者們使用 [威注音語彙庫](https://gitee.com/vChewing/libvchewing-data) 來實現對兩岸讀音習慣的同時兼顧。
+> 注意：該引擎會將「ㄅㄨㄥ ㄆㄨㄥ ㄇㄨㄥ ㄈㄨㄥ」這四種讀音自動轉換成「ㄅㄥ ㄆㄥ ㄇㄥ ㄈㄥ」、將「ㄅㄨㄛ ㄆㄨㄛ ㄇㄨㄛ ㄈㄨㄛ」這四種讀音自動轉換成「ㄅㄛ ㄆㄛ ㄇㄛ ㄈㄛ」。如果您正在開發的輸入法的詞庫內的「甮」字的讀音沒有從「ㄈㄨㄥˋ」改成「ㄈㄥˋ」、或者說需要保留「ㄈㄨㄥˋ」的讀音的話，請按需修改「receiveKey(fromPhonabet:)」函式當中的相關步驟、來跳過該轉換。該情形為十分罕見之情形。類似情形則是台澎金馬審音的慣用讀音「ㄌㄩㄢˊ」，因為使用者眾、所以不會被該引擎自動轉換成「ㄌㄨㄢˊ」。威注音輸入法內部已經從辭典角度做了處理、允許在敲「ㄌㄨㄢˊ」的時候出現以「ㄌㄩㄢˊ」為讀音的漢字。我們鼓勵輸入法開發者們使用 [威注音語彙庫](https://gitee.com/vChewing/libvchewing-data) 來實現對兩岸讀音習慣的同時兼顧。
 
 ## 使用說明
 
@@ -47,7 +47,7 @@ class ctlInputMethod: IMKInputController {
 
 由於 Swift 會在某個大副本（KeyHandler 或者 ctlInputMethod 副本）被銷毀的時候自動銷毀其中的全部副本，所以 Tekkon.Composer 的副本初期化沒必要寫在 init() 當中。但你很可能會想在 init() 時指定 Tekkon.Composer 所使用的注音排列（是大千？還是倚天傳統？還是神通？等）。
 
-這裡就需要在 _composer 這個副本所在的型別當中額外寫一個過程函數。
+這裡就需要在 _composer 這個副本所在的型別當中額外寫一個過程函式。
 
 下文範例 `ensureParser()` 是這樣：假設 mgrPrefs 用來管理 UserDefaults 資料，那麼就從裡面取資料來判定 _composer 的注音排列分析器究竟該選哪個。
 
@@ -88,7 +88,7 @@ class ctlInputMethod: IMKInputController {
   }
 ```
 
-然後你可以在想用這個函數的時候用。比如說在 _composer 這個副本所在的型別的 `init()` 內的 super.init() 後面寫上步驟即可：
+然後你可以在想用這個函式的時候用。比如說在 _composer 這個副本所在的型別的 `init()` 內的 super.init() 後面寫上步驟即可：
 
 ```swift
   override init() {
@@ -107,13 +107,13 @@ class ctlInputMethod: IMKInputController {
 
 總之用法有很多。這裡不再一一列舉。
 
-### §2. 函數介紹與按鍵訊號處理
+### §2. 函式介紹與按鍵訊號處理
 
 #### // 1. 獲取注拼槽內現有的注音拼寫內容
 
 這裡分用途說明一下，請結合 TekkonTests.swift 理解。
 
-首先，InputMethodKit 的 updateClientComposingBuffer() 當中可以使用 _composer 的 getInlineCompositionForDisplay() 函數。如果你想讓組字緩衝區內顯示拼音而不是注音的話，可以這樣改參數：
+首先，InputMethodKit 的 updateClientComposingBuffer() 當中可以使用 _composer 的 getInlineCompositionForDisplay() 函式。如果你想讓組字緩衝區內顯示拼音而不是注音的話，可以這樣改參數：
 
 ```swift
 let XXX = getInlineCompositionForDisplay(isHanyuPinyin: true)
@@ -130,7 +130,7 @@ let DDD = getComposition(isHanyuPinyin: true, isTextBookStyle: true)  // 輸出�
 
 那原始資料值呢？用 _composer.value 可以拿到原始資料值，但請注意：這個資料值裡面的注音的陰平聲調是以一個西文半形空格來體現的。
 
-各位可以自行修改一下 TekkonTests.swift 試試看，比如說在其檔案內新增一個 Extension 與測試函數：
+各位可以自行修改一下 TekkonTests.swift 試試看，比如說在其檔案內新增一個 Extension 與測試函式：
 
 ```swift
 import XCTest
@@ -188,7 +188,7 @@ extension KeyHandler {
 
 如果收到的按鍵訊號是 BackSpace 的話，可以用 _composer.doBackSpace() 來移除注拼槽內最前方的元素。
 
-鐵恨引擎的注拼槽 Composer 型別內的函數都有對應的詳細註解說明。這裡不再贅述。
+鐵恨引擎的注拼槽 Composer 型別內的函式都有對應的詳細註解說明。這裡不再贅述。
 
 
 
@@ -207,7 +207,7 @@ let skipPhoneticHandling = input.isReservedKey || input.isControlHold || input.i
 // See if Phonetic reading is valid.
 // 這裡 inputValidityCheck() 是讓 _composer 檢查 charCode 這個 UniChar 是否是合法的注音輸入。
 // 如果是的話，就將這次傳入的這個按鍵訊號塞入 _composer 內且標記為「keyConsumedByReading」。
-// 函數 _composer.receiveKey() 可以既接收 String 又接收 UniChar。
+// 函式 _composer.receiveKey() 可以既接收 String 又接收 UniChar。
 if !skipPhoneticHandling && _composer.inputValidityCheck(key: charCode) {
   _composer.receiveKey(fromCharCode: charCode)
   keyConsumedByReading = true

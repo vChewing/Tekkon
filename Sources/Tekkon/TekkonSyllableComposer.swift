@@ -863,7 +863,7 @@ public struct Tekkon {
     return arrReturn.joined(separator: newSeparator)
   }
 
-  /// 該函數用來恢復注音當中的陰平聲調，恢復之後會以「1」表示陰平。
+  /// 該函式用來恢復注音當中的陰平聲調，恢復之後會以「1」表示陰平。
   /// - Parameters:
   ///   - target: 要拿來做轉換處理的讀音鏈，以英文減號來分隔每個讀音。
   ///   - newSeparator: 新的讀音分隔符。
