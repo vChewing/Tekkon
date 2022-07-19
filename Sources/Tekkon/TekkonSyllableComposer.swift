@@ -221,6 +221,9 @@ public struct Tekkon {
     /// 注音排列種類。預設情況下是大千排列（Windows / macOS 預設注音排列）。
     public var parser: MandarinParser = .ofDachen
 
+    /// 是否對錯誤的注音讀音組合做出自動糾正處理。
+    public var shouldEnablePhonabetCombinationCorrection = false
+
     /// 內容值，會直接按照正確的順序拼裝自己的聲介韻調內容、再回傳。
     /// 注意：直接取這個參數的內容的話，陰平聲調會成為一個空格。
     /// 如果是要取不帶空格的注音的話，請使用「.getComposition()」而非「.value」。
@@ -285,9 +288,11 @@ public struct Tekkon {
     /// - Parameters:
     ///   - input: 傳入的 String 內容，用以處理單個字符。
     ///   - arrange: 要使用的注音排列。
-    public init(_ input: String = "", arrange parser: MandarinParser = .ofDachen) {
+    ///   - correction: 是否對錯誤的注音讀音組合做出自動糾正處理。
+    public init(_ input: String = "", arrange parser: MandarinParser = .ofDachen, correction: Bool = false) {
       ensureParser(arrange: parser)
       receiveKey(fromString: input)
+      shouldEnablePhonabetCombinationCorrection = correction
     }
 
     /// 清除自身的內容，就是將聲介韻調全部清空。
@@ -380,17 +385,19 @@ public struct Tekkon {
     ///   - fromPhonabet: 傳入的單個注音符號字串。
     public mutating func receiveKey(fromPhonabet phonabet: String = "") {
       let thePhone: Phonabet = .init(phonabet)
-      switch phonabet {
-        case "ㄛ", "ㄥ":
-          if "ㄅㄆㄇㄈ".contains(consonant.value), semivowel.value == "ㄨ" { semivowel.clear() }
-        case "ㄟ":
-          if "ㄋㄌ".contains(consonant.value), semivowel.value == "ㄨ" { semivowel.clear() }
-        case "ㄨ":
-          if "ㄅㄆㄇㄈ".contains(consonant.value), "ㄛㄥ".contains(vowel.value) { vowel.clear() }
-          if "ㄋㄌ".contains(consonant.value), "ㄟ".contains(vowel.value) { vowel.clear() }
-        case "ㄅ", "ㄆ", "ㄇ", "ㄈ":
-          if ["ㄨㄛ", "ㄨㄥ"].contains(semivowel.value + vowel.value) { semivowel.clear() }
-        default: break
+      if shouldEnablePhonabetCombinationCorrection {
+        switch phonabet {
+          case "ㄛ", "ㄥ":
+            if "ㄅㄆㄇㄈ".contains(consonant.value), semivowel.value == "ㄨ" { semivowel.clear() }
+          case "ㄟ":
+            if "ㄋㄌ".contains(consonant.value), semivowel.value == "ㄨ" { semivowel.clear() }
+          case "ㄨ":
+            if "ㄅㄆㄇㄈ".contains(consonant.value), "ㄛㄥ".contains(vowel.value) { vowel.clear() }
+            if "ㄋㄌ".contains(consonant.value), "ㄟ".contains(vowel.value) { vowel.clear() }
+          case "ㄅ", "ㄆ", "ㄇ", "ㄈ":
+            if ["ㄨㄛ", "ㄨㄥ"].contains(semivowel.value + vowel.value) { semivowel.clear() }
+          default: break
+        }
       }
       switch thePhone.type {
         case .consonant: consonant = thePhone

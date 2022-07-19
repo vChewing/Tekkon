@@ -111,6 +111,9 @@ final class TekkonTests: XCTestCase {
     toneMarkerIndicator = composer.hasToneMarker(withNothingElse: true)
     XCTAssert(toneMarkerIndicator)
 
+    // Testing auto phonabet combination fixing process.
+    composer.shouldEnablePhonabetCombinationCorrection = true
+
     // Testing exceptions of handling "ㄅㄨㄛ ㄆㄨㄛ ㄇㄨㄛ ㄈㄨㄛ"
     composer.clear()
     composer.receiveKey(fromString: "1")
