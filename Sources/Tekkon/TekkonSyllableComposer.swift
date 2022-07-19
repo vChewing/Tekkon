@@ -388,7 +388,7 @@ public struct Tekkon {
       if phonabetCombinationCorrectionEnabled {
         switch phonabet {
           case "ㄧ", "ㄩ":
-            if vowel.value == "ㄜ" { vowel.clear() }
+            if vowel.value == "ㄜ" { vowel = "ㄝ" }
           case "ㄜ":
             if "ㄧㄩ".contains(semivowel.value) { thePhone = "ㄝ" }
           case "ㄛ", "ㄥ":

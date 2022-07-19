@@ -154,7 +154,7 @@ final class TekkonTests: XCTestCase {
     composer.receiveKey(fromString: "s")
     composer.receiveKey(fromString: "k")
     composer.receiveKey(fromString: "u")
-    XCTAssertEqual(composer.getComposition(), "ㄋㄧ")
+    XCTAssertEqual(composer.getComposition(), "ㄋㄧㄝ")
     composer.receiveKey(fromString: "s")
     composer.receiveKey(fromString: "m")
     composer.receiveKey(fromString: "k")
