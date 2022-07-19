@@ -893,14 +893,14 @@ public struct Tekkon {
   /// 該函式用來將漢語拼音轉為注音。
   /// - Parameter target: 要轉換的漢語拼音內容，要求必須帶有 12345 數字標調。
   /// - Returns: 轉換結果。
-  static func cnvPinyinToPhonabet(target: String) -> String {
+  static func cnvHanyuPinyinToPhona(target: String) -> String {
     if target.contains("_") { return target }
     var result = target
-    for key in Tekkon.mapHanyuPinyin.keys {
+    for key in Tekkon.mapHanyuPinyin.keys.sorted(by: { $0.count > $1.count }) {
       guard let value = Tekkon.mapHanyuPinyin[key] else { continue }
       result = result.replacingOccurrences(of: key, with: value)
     }
-    for key in Tekkon.mapArayuruPinyinIntonation.keys {
+    for key in Tekkon.mapArayuruPinyinIntonation.keys.sorted(by: { $0.count > $1.count }) {
       guard let value = Tekkon.mapArayuruPinyinIntonation[key] else { continue }
       result = result.replacingOccurrences(of: key, with: value)
     }

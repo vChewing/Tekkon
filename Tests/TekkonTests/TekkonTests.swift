@@ -152,6 +152,7 @@ final class TekkonTests: XCTestCase {
     // Testing tool functions
     XCTAssertEqual(Tekkon.restoreToneOneInZhuyinKey(target: "ㄉㄧㄠ"), "ㄉㄧㄠ1")
     XCTAssertEqual(Tekkon.cnvZhuyinChainToTextbookReading(target: "ㄊㄧㄥ-ㄓㄜ˙"), "ㄊㄧㄥ-˙ㄓㄜ")
+    XCTAssertEqual(Tekkon.cnvHanyuPinyinToPhona(target: "jing3-gao4"), "ㄐㄧㄥˇ-ㄍㄠˋ")
   }
 
   func testHanyuinyinKeyReceivingAndCompositions() throws {
