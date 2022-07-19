@@ -111,6 +111,9 @@ final class TekkonTests: XCTestCase {
     toneMarkerIndicator = composer.hasToneMarker(withNothingElse: true)
     XCTAssert(toneMarkerIndicator)
 
+    // Testing auto phonabet combination fixing process.
+    composer.phonabetCombinationCorrectionEnabled = true
+
     // Testing exceptions of handling "ㄅㄨㄛ ㄆㄨㄛ ㄇㄨㄛ ㄈㄨㄛ"
     composer.clear()
     composer.receiveKey(fromString: "1")
@@ -137,9 +140,18 @@ final class TekkonTests: XCTestCase {
     composer.receiveKey(fromString: "z")
     XCTAssertEqual(composer.getComposition(), "ㄈㄥ")
 
+    // Testing exceptions of handling "ㄋㄨㄟ ㄌㄨㄟ"
+    composer.clear()
+    composer.receiveKey(fromString: "s")
+    composer.receiveKey(fromString: "j")
+    composer.receiveKey(fromString: "o")
+    XCTAssertEqual(composer.getComposition(), "ㄋㄟ")
+    composer.receiveKey(fromString: "x")
+    XCTAssertEqual(composer.getComposition(), "ㄌㄟ")
+
     // Testing tool functions
-    XCTAssertEqual(Tekkon.restoreToneOneInZhuyinKey(target: "ㄉㄧㄠ"), "ㄉㄧㄠ1");
-    XCTAssertEqual(Tekkon.cnvZhuyinChainToTextbookReading(target: "ㄊㄧㄥ-ㄓㄜ˙"),"ㄊㄧㄥ-˙ㄓㄜ");
+    XCTAssertEqual(Tekkon.restoreToneOneInZhuyinKey(target: "ㄉㄧㄠ"), "ㄉㄧㄠ1")
+    XCTAssertEqual(Tekkon.cnvZhuyinChainToTextbookReading(target: "ㄊㄧㄥ-ㄓㄜ˙"), "ㄊㄧㄥ-˙ㄓㄜ")
   }
 
   func testHanyuinyinKeyReceivingAndCompositions() throws {
