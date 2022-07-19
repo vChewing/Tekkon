@@ -290,9 +290,9 @@ public struct Tekkon {
     ///   - arrange: 要使用的注音排列。
     ///   - correction: 是否對錯誤的注音讀音組合做出自動糾正處理。
     public init(_ input: String = "", arrange parser: MandarinParser = .ofDachen, correction: Bool = false) {
+      phonabetCombinationCorrectionEnabled = correction
       ensureParser(arrange: parser)
       receiveKey(fromString: input)
-      phonabetCombinationCorrectionEnabled = correction
     }
 
     /// 清除自身的內容，就是將聲介韻調全部清空。
