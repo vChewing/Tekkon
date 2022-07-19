@@ -383,8 +383,11 @@ public struct Tekkon {
       switch phonabet {
         case "ㄛ", "ㄥ":
           if "ㄅㄆㄇㄈ".contains(consonant.value), semivowel.value == "ㄨ" { semivowel.clear() }
+        case "ㄟ":
+          if "ㄋㄌ".contains(consonant.value), semivowel.value == "ㄨ" { semivowel.clear() }
         case "ㄨ":
           if "ㄅㄆㄇㄈ".contains(consonant.value), "ㄛㄥ".contains(vowel.value) { vowel.clear() }
+          if "ㄋㄌ".contains(consonant.value), "ㄟ".contains(vowel.value) { vowel.clear() }
         case "ㄅ", "ㄆ", "ㄇ", "ㄈ":
           if ["ㄨㄛ", "ㄨㄥ"].contains(semivowel.value + vowel.value) { semivowel.clear() }
         default: break
