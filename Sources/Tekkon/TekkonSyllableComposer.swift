@@ -880,6 +880,23 @@ public struct Tekkon {
     return arrReturn.joined(separator: newSeparator)
   }
 
+  /// 該函式用來將漢語拼音轉為注音。
+  /// - Parameter target: 要轉換的漢語拼音內容，要求必須帶有 12345 數字標調。
+  /// - Returns: 轉換結果。
+  static func cnvPinyinToPhonabet(target: String) -> String {
+    if target.contains("_") { return target }
+    var result = target
+    for key in Tekkon.mapHanyuPinyin.keys {
+      guard let value = Tekkon.mapHanyuPinyin[key] else { continue }
+      result = result.replacingOccurrences(of: key, with: value)
+    }
+    for key in Tekkon.mapArayuruPinyinIntonation.keys {
+      guard let value = Tekkon.mapArayuruPinyinIntonation[key] else { continue }
+      result = result.replacingOccurrences(of: key, with: value)
+    }
+    return result
+  }
+
   /// 原始轉換對照表資料貯存專用佇列（數字標調格式）
   static let arrPhonaToHanyuPinyin = [  // 排序很重要。先處理最長的，再處理短的。不然會出亂子。
     [" ", "1"], ["ˊ", "2"], ["ˇ", "3"], ["ˋ", "4"], ["˙", "5"],
