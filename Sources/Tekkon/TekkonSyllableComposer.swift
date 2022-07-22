@@ -895,9 +895,11 @@ public struct Tekkon {
   }
 
   /// 該函式用來將漢語拼音轉為注音。
-  /// - Parameter target: 要轉換的漢語拼音內容，要求必須帶有 12345 數字標調。
+  /// - Parameters:
+  ///   - target: 要轉換的漢語拼音內容，要求必須帶有 12345 數字標調。
+  ///   - newToneOne: 對陰平指定新的標記。預設情況下該標記為空字串。
   /// - Returns: 轉換結果。
-  static func cnvHanyuPinyinToPhona(target: String) -> String {
+  static func cnvHanyuPinyinToPhona(target: String, newToneOne: String = "") -> String {
     if target.contains("_") { return target }
     var result = target
     for key in Tekkon.mapHanyuPinyin.keys.sorted(by: { $0.count > $1.count }) {
@@ -906,7 +908,7 @@ public struct Tekkon {
     }
     for key in Tekkon.mapArayuruPinyinIntonation.keys.sorted(by: { $0.count > $1.count }) {
       guard let value = Tekkon.mapArayuruPinyinIntonation[key] else { continue }
-      result = result.replacingOccurrences(of: key, with: value)
+      result = result.replacingOccurrences(of: key, with: (key == "1") ? newToneOne : value)
     }
     return result
   }
