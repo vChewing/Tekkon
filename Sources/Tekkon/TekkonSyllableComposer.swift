@@ -395,7 +395,10 @@ public struct Tekkon {
           case "ㄧ", "ㄩ":
             if vowel.value == "ㄜ" { vowel = "ㄝ" }
           case "ㄜ":
+            if "ㄨ".contains(semivowel.value) { semivowel = "ㄩ" }
             if "ㄧㄩ".contains(semivowel.value) { thePhone = "ㄝ" }
+          case "ㄝ":
+            if "ㄨ".contains(semivowel.value) { semivowel = "ㄩ" }
           case "ㄛ", "ㄥ":
             if "ㄅㄆㄇㄈ".contains(consonant.value), semivowel.value == "ㄨ" { semivowel.clear() }
           case "ㄟ":
@@ -403,6 +406,8 @@ public struct Tekkon {
           case "ㄨ":
             if "ㄅㄆㄇㄈ".contains(consonant.value), "ㄛㄥ".contains(vowel.value) { vowel.clear() }
             if "ㄋㄌ".contains(consonant.value), "ㄟ".contains(vowel.value) { vowel.clear() }
+            if "ㄜ".contains(vowel.value) { vowel = "ㄝ" }
+            if "ㄝ".contains(vowel.value) { thePhone = "ㄩ" }
           case "ㄅ", "ㄆ", "ㄇ", "ㄈ":
             if ["ㄨㄛ", "ㄨㄥ"].contains(semivowel.value + vowel.value) { semivowel.clear() }
           default: break

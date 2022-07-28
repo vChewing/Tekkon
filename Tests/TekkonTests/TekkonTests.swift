@@ -164,6 +164,24 @@ final class TekkonTests: XCTestCase {
     composer.receiveKey(fromString: "k")
     XCTAssertEqual(composer.getComposition(), "ㄋㄧㄝ")
 
+    // Testing exceptions of handling "ㄨㄜ ㄨㄝ"
+    composer.clear()
+    composer.receiveKey(fromString: "j")
+    composer.receiveKey(fromString: "k")
+    XCTAssertEqual(composer.getComposition(), "ㄩㄝ")
+    composer.clear()
+    composer.receiveKey(fromString: "j")
+    composer.receiveKey(fromString: ",")
+    XCTAssertEqual(composer.getComposition(), "ㄩㄝ")
+    composer.clear()
+    composer.receiveKey(fromString: ",")
+    composer.receiveKey(fromString: "j")
+    XCTAssertEqual(composer.getComposition(), "ㄩㄝ")
+    composer.clear()
+    composer.receiveKey(fromString: "k")
+    composer.receiveKey(fromString: "j")
+    XCTAssertEqual(composer.getComposition(), "ㄩㄝ")
+
     // Testing tool functions
     XCTAssertEqual(Tekkon.restoreToneOneInZhuyinKey(target: "ㄉㄧㄠ"), "ㄉㄧㄠ1")
     XCTAssertEqual(Tekkon.cnvZhuyinChainToTextbookReading(target: "ㄊㄧㄥ-ㄓㄜ˙"), "ㄊㄧㄥ-˙ㄓㄜ")
