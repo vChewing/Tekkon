@@ -858,7 +858,13 @@ public struct Tekkon {
         case "b": if !consonant.isEmpty || !semivowel.isEmpty { vowel = "ㄝ" } else { consonant = "ㄖ" }
         case "i": if vowel.isEmpty || vowel == "ㄞ" { vowel = "ㄛ" } else { vowel = "ㄞ" }
         case "l": if vowel.isEmpty || vowel == "ㄤ" { vowel = "ㄠ" } else { vowel = "ㄤ" }
-        case "n": if !consonant.isEmpty || !semivowel.isEmpty { vowel = "ㄥ" } else { consonant = "ㄙ" }
+        case "n":
+          if !consonant.isEmpty || !semivowel.isEmpty {
+            if consonant == "ㄙ", semivowel.isEmpty, vowel.isEmpty { consonant.clear() }
+            vowel = "ㄥ"
+          } else {
+            consonant = "ㄙ"
+          }
         case "o": if vowel.isEmpty || vowel == "ㄢ" { vowel = "ㄟ" } else { vowel = "ㄢ" }
         case "p": if vowel.isEmpty || vowel == "ㄦ" { vowel = "ㄣ" } else { vowel = "ㄦ" }
         case "q": if consonant.isEmpty || consonant == "ㄅ" { consonant = "ㄆ" } else { consonant = "ㄅ" }
@@ -874,7 +880,7 @@ public struct Tekkon {
           } else if !semivowel.isEmpty {
             vowel = "ㄡ"
           } else {
-            semivowel = "ㄩ"
+            receiveKey(fromPhonabet: "ㄐㄑㄒ".contains(consonant.value) ? "ㄩ" : "ㄡ")
           }
         case "u":
           if semivowel == "ㄧ", vowel != "ㄚ" {
