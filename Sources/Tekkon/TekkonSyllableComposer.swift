@@ -48,6 +48,7 @@ public struct Tekkon {
     case ofMiTAC = 6
     case ofSeigyou = 7
     case ofFakeSeigyou = 8
+    case ofStarlight = 9
     case ofHanyuPinyin = 100
     case ofSecondaryPinyin = 101
     case ofYalePinyin = 102
@@ -74,6 +75,8 @@ public struct Tekkon {
           return "FakeSeigyou"
         case .ofSeigyou:
           return "Seigyou"
+        case .ofStarlight:
+          return "Starlight"
         case .ofHanyuPinyin:
           return "HanyuPinyin"
         case .ofSecondaryPinyin:
@@ -334,6 +337,8 @@ public struct Tekkon {
             return Tekkon.mapSeigyou[input] != nil
           case .ofFakeSeigyou:
             return Tekkon.mapFakeSeigyou[input] != nil
+          case .ofStarlight:
+            return Tekkon.mapStarlightStaticKeys[input] != nil
           case .ofHanyuPinyin, .ofSecondaryPinyin, .ofYalePinyin, .ofHualuoPinyin, .ofUniversalPinyin:
             return Tekkon.mapArayuruPinyin.contains(input)
         }
@@ -537,6 +542,8 @@ public struct Tekkon {
           return Tekkon.mapSeigyou[key] ?? ""
         case .ofFakeSeigyou:
           return Tekkon.mapFakeSeigyou[key] ?? ""
+        case .ofStarlight:
+          return handleStarlight(key: key)
         case .ofHanyuPinyin, .ofSecondaryPinyin, .ofYalePinyin, .ofHualuoPinyin, .ofUniversalPinyin:
           break  // 漢語拼音單獨用另外的函式處理
       }
@@ -744,6 +751,92 @@ public struct Tekkon {
 
       // 這些按鍵在上文處理過了，就不要再回傳了。
       if "acdefghjklmns".contains(key) { strReturn = "" }
+
+      // 回傳結果是空的話，不要緊，因為上文已經代處理過分配過程了。
+      return strReturn
+    }
+
+    /// 星光排列一樣同樣也比較麻煩，需要單獨處理。
+    ///
+    /// 回傳結果是空的話，不要緊，因為該函式內部已經處理過分配過程了。
+    /// - Parameters:
+    ///   - key: 傳入的 String 訊號。
+    mutating func handleStarlight(key: String) -> String {
+      var strReturn = Tekkon.mapStarlightStaticKeys[key] ?? ""
+      let incomingPhonabet = Phonabet(strReturn)
+      switch key {
+        case "e": return "ㄧㄩ".contains(semivowel.value) ? "ㄝ" : "ㄜ"
+        case "f": return vowel == "ㄠ" || !isPronouncable ? "ㄈ" : "ㄠ"
+        case "g": return vowel == "ㄥ" || !isPronouncable ? "ㄍ" : "ㄥ"
+        case "k": return vowel == "ㄤ" || !isPronouncable ? "ㄎ" : "ㄤ"
+        case "l": return vowel == "ㄦ" || !isPronouncable ? "ㄌ" : "ㄦ"
+        case "m": return vowel == "ㄢ" || !isPronouncable ? "ㄇ" : "ㄢ"
+        case "n": return vowel == "ㄣ" || !isPronouncable ? "ㄋ" : "ㄣ"
+        case "t": return vowel == "ㄟ" || !isPronouncable ? "ㄊ" : "ㄟ"
+        default: break
+      }
+
+      // 處理特殊情形。
+      switch incomingPhonabet.type {
+        case .semivowel:
+          switch consonant {
+            case "ㄍ":  // 許氏鍵盤應該也需要這個自動糾正
+              switch incomingPhonabet {
+                case "ㄧ": consonant = "ㄑ"  // ㄑㄧ
+                case "ㄨ": consonant = "ㄍ"  // ㄍㄨ
+                case "ㄩ": consonant = "ㄑ"  // ㄑㄩ
+                default: break
+              }
+            case "ㄓ":
+              if intonation.isEmpty {
+                switch incomingPhonabet {
+                  case "ㄧ": consonant = "ㄐ"  // ㄐㄧ
+                  case "ㄨ": consonant = "ㄓ"  // ㄓㄨ
+                  case "ㄩ": consonant = "ㄐ"  // ㄐㄩ
+                  default: break
+                }
+              }
+            case "ㄔ":
+              if intonation.isEmpty {
+                switch incomingPhonabet {
+                  case "ㄧ": consonant = "ㄑ"  // ㄐㄧ
+                  case "ㄨ": consonant = "ㄔ"  // ㄓㄨ
+                  case "ㄩ": consonant = "ㄑ"  // ㄐㄩ
+                  default: break
+                }
+              }
+            case "ㄕ":
+              switch incomingPhonabet {
+                case "ㄧ": consonant = "ㄒ"  // ㄒㄧ
+                case "ㄨ": consonant = "ㄕ"  // ㄕㄨ
+                case "ㄩ": consonant = "ㄒ"  // ㄒㄩ
+                default: break
+              }
+            default: break
+          }
+        case .vowel:
+          if semivowel.isEmpty {
+            consonant.selfReplace("ㄐ", "ㄓ")
+            consonant.selfReplace("ㄑ", "ㄔ")
+            consonant.selfReplace("ㄒ", "ㄕ")
+          }
+        default: break
+      }
+
+      if "67890 ".contains(key) {
+        if !consonant.isEmpty, semivowel.isEmpty, vowel.isEmpty {
+          consonant.selfReplace("ㄈ", "ㄠ")
+          consonant.selfReplace("ㄍ", "ㄥ")
+          consonant.selfReplace("ㄎ", "ㄤ")
+          consonant.selfReplace("ㄌ", "ㄦ")
+          consonant.selfReplace("ㄇ", "ㄢ")
+          consonant.selfReplace("ㄋ", "ㄣ")
+          consonant.selfReplace("ㄊ", "ㄟ")
+        }
+      }
+
+      // 這些按鍵在上文處理過了，就不要再回傳了。
+      if "efgklmn".contains(key) { strReturn = "" }
 
       // 回傳結果是空的話，不要緊，因為上文已經代處理過分配過程了。
       return strReturn
@@ -1371,6 +1464,16 @@ public struct Tekkon {
     "a": "ㄚ", "b": "ㄅ", "c": "ㄕ", "d": "ㄉ", "e": "ㄧ", "f": "ㄈ", "g": "ㄓ", "h": "ㄏ", "i": "ㄞ", "j": "ㄖ", "k": "ㄎ",
     "l": "ㄌ", "m": "ㄇ", "n": "ㄋ", "o": "ㄛ", "p": "ㄆ", "q": "ㄗ", "r": "ㄜ", "s": "ㄙ", "t": "ㄊ", "u": "ㄩ", "v": "ㄍ",
     "w": "ㄘ", "x": "ㄨ", "y": "ㄔ", "z": "ㄠ", " ": " ",
+  ]
+
+  /// 星光排列預處理專用陣列，但未包含全部的映射內容。
+  ///
+  /// 在這裡將二十六個字母寫全，也只是為了方便做 validity check。
+  /// 這裡提前對複音按鍵做處理，然後再用程式判斷介母類型、據此判斷是否需要做複音切換。
+  static let mapStarlightStaticKeys: [String: String] = [
+    "a": "ㄚ", "b": "ㄅ", "c": "ㄘ", "d": "ㄉ", "e": "ㄜ", "f": "ㄈ", "g": "ㄍ", "h": "ㄏ", "i": "ㄧ", "j": "ㄓ", "k": "ㄎ",
+    "l": "ㄌ", "m": "ㄇ", "n": "ㄋ", "o": "ㄛ", "p": "ㄆ", "q": "ㄔ", "r": "ㄖ", "s": "ㄙ", "t": "ㄊ", "u": "ㄨ", "v": "ㄩ",
+    "w": "ㄡ", "x": "ㄕ", "y": "ㄞ", "z": "ㄗ", " ": " ", "6": " ", "7": "ˊ", "8": "ˇ", "9": "ˋ", "0": "˙",
   ]
 
   /// 倚天傳統排列專用處理陣列。
