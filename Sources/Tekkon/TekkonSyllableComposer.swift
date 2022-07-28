@@ -555,6 +555,53 @@ public struct Tekkon {
       return ""
     }
 
+    /// 所有動態注音鍵盤佈局都會用到的共用糾錯處理步驟。
+    /// - Parameter incomingPhonabet: 傳入的注音 Phonabet。
+    mutating func commonFixWhenHandlingDynamicArrangeInputs(target incomingPhonabet: Phonabet) {
+      // 處理特殊情形。
+      switch incomingPhonabet.type {
+        case .semivowel:
+          switch consonant {
+            case "ㄍ":
+              switch incomingPhonabet {
+                case "ㄧ": consonant = "ㄑ"  // ㄑㄧ
+                case "ㄨ": consonant = "ㄍ"  // ㄍㄨ
+                case "ㄩ": consonant = "ㄑ"  // ㄑㄩ
+                default: break
+              }
+            case "ㄓ":
+              switch incomingPhonabet {
+                case "ㄧ": consonant = "ㄐ"  // ㄐㄧ
+                case "ㄨ": consonant = "ㄓ"  // ㄓㄨ
+                case "ㄩ": consonant = "ㄐ"  // ㄐㄩ
+                default: break
+              }
+            case "ㄔ":
+              switch incomingPhonabet {
+                case "ㄧ": consonant = "ㄑ"  // ㄐㄧ
+                case "ㄨ": consonant = "ㄔ"  // ㄓㄨ
+                case "ㄩ": consonant = "ㄑ"  // ㄐㄩ
+                default: break
+              }
+            case "ㄕ":
+              switch incomingPhonabet {
+                case "ㄧ": consonant = "ㄒ"  // ㄒㄧ
+                case "ㄨ": consonant = "ㄕ"  // ㄕㄨ
+                case "ㄩ": consonant = "ㄒ"  // ㄒㄩ
+                default: break
+              }
+            default: break
+          }
+        case .vowel:
+          if semivowel.isEmpty {
+            consonant.selfReplace("ㄐ", "ㄓ")
+            consonant.selfReplace("ㄑ", "ㄔ")
+            consonant.selfReplace("ㄒ", "ㄕ")
+          }
+        default: break
+      }
+    }
+
     /// 倚天忘形注音排列比較麻煩，需要單獨處理。
     ///
     /// 回傳結果是空字串的話，不要緊，因為該函式內部已經處理過分配過程了。
@@ -589,33 +636,8 @@ public struct Tekkon {
         default: break
       }
 
-      // 處理「一個按鍵對應兩個聲母」的情形。
-      if !consonant.isEmpty, incomingPhonabet.type == .semivowel {
-        switch consonant {
-          case "ㄍ":
-            switch incomingPhonabet {
-              case "ㄧ": consonant = "ㄑ"  // ㄑㄧ
-              case "ㄨ": consonant = "ㄍ"  // ㄍㄨ
-              case "ㄩ": consonant = "ㄑ"  // ㄑㄩ
-              default: break
-            }
-          case "ㄓ":
-            switch incomingPhonabet {
-              case "ㄧ": consonant = "ㄐ"  // ㄐㄧ
-              case "ㄨ": consonant = "ㄓ"  // ㄓㄨ
-              case "ㄩ": consonant = "ㄐ"  // ㄐㄩ
-              default: break
-            }
-          case "ㄕ":
-            switch incomingPhonabet {
-              case "ㄧ": consonant = "ㄒ"  // ㄒㄧ
-              case "ㄨ": consonant = "ㄕ"  // ㄕㄨ
-              case "ㄩ": consonant = "ㄒ"  // ㄒㄩ
-              default: break
-            }
-          default: break
-        }
-      }
+      // 處理特殊情形。
+      commonFixWhenHandlingDynamicArrangeInputs(target: incomingPhonabet)
 
       if "dfjk ".contains(key),
         !consonant.isEmpty, semivowel.isEmpty, vowel.isEmpty
@@ -678,51 +700,7 @@ public struct Tekkon {
       }
 
       // 處理特殊情形。
-      switch incomingPhonabet.type {
-        case .semivowel:
-          switch consonant {
-            case "ㄍ":  // 許氏鍵盤應該也需要這個自動糾正
-              switch incomingPhonabet {
-                case "ㄧ": consonant = "ㄑ"  // ㄑㄧ
-                case "ㄨ": consonant = "ㄍ"  // ㄍㄨ
-                case "ㄩ": consonant = "ㄑ"  // ㄑㄩ
-                default: break
-              }
-            case "ㄓ":
-              if intonation.isEmpty {
-                switch incomingPhonabet {
-                  case "ㄧ": consonant = "ㄐ"  // ㄐㄧ
-                  case "ㄨ": consonant = "ㄓ"  // ㄓㄨ
-                  case "ㄩ": consonant = "ㄐ"  // ㄐㄩ
-                  default: break
-                }
-              }
-            case "ㄔ":
-              if intonation.isEmpty {
-                switch incomingPhonabet {
-                  case "ㄧ": consonant = "ㄑ"  // ㄐㄧ
-                  case "ㄨ": consonant = "ㄔ"  // ㄓㄨ
-                  case "ㄩ": consonant = "ㄑ"  // ㄐㄩ
-                  default: break
-                }
-              }
-            case "ㄕ":
-              switch incomingPhonabet {
-                case "ㄧ": consonant = "ㄒ"  // ㄒㄧ
-                case "ㄨ": consonant = "ㄕ"  // ㄕㄨ
-                case "ㄩ": consonant = "ㄒ"  // ㄒㄩ
-                default: break
-              }
-            default: break
-          }
-        case .vowel:
-          if semivowel.isEmpty {
-            consonant.selfReplace("ㄐ", "ㄓ")
-            consonant.selfReplace("ㄑ", "ㄔ")
-            consonant.selfReplace("ㄒ", "ㄕ")
-          }
-        default: break
-      }
+      commonFixWhenHandlingDynamicArrangeInputs(target: incomingPhonabet)
 
       if "dfjs ".contains(key) {
         if !consonant.isEmpty, semivowel.isEmpty, vowel.isEmpty {
@@ -782,51 +760,7 @@ public struct Tekkon {
       }
 
       // 處理特殊情形。
-      switch incomingPhonabet.type {
-        case .semivowel:
-          switch consonant {
-            case "ㄍ":  // 許氏鍵盤應該也需要這個自動糾正
-              switch incomingPhonabet {
-                case "ㄧ": consonant = "ㄑ"  // ㄑㄧ
-                case "ㄨ": consonant = "ㄍ"  // ㄍㄨ
-                case "ㄩ": consonant = "ㄑ"  // ㄑㄩ
-                default: break
-              }
-            case "ㄓ":
-              if intonation.isEmpty {
-                switch incomingPhonabet {
-                  case "ㄧ": consonant = "ㄐ"  // ㄐㄧ
-                  case "ㄨ": consonant = "ㄓ"  // ㄓㄨ
-                  case "ㄩ": consonant = "ㄐ"  // ㄐㄩ
-                  default: break
-                }
-              }
-            case "ㄔ":
-              if intonation.isEmpty {
-                switch incomingPhonabet {
-                  case "ㄧ": consonant = "ㄑ"  // ㄐㄧ
-                  case "ㄨ": consonant = "ㄔ"  // ㄓㄨ
-                  case "ㄩ": consonant = "ㄑ"  // ㄐㄩ
-                  default: break
-                }
-              }
-            case "ㄕ":
-              switch incomingPhonabet {
-                case "ㄧ": consonant = "ㄒ"  // ㄒㄧ
-                case "ㄨ": consonant = "ㄕ"  // ㄕㄨ
-                case "ㄩ": consonant = "ㄒ"  // ㄒㄩ
-                default: break
-              }
-            default: break
-          }
-        case .vowel:
-          if semivowel.isEmpty {
-            consonant.selfReplace("ㄐ", "ㄓ")
-            consonant.selfReplace("ㄑ", "ㄔ")
-            consonant.selfReplace("ㄒ", "ㄕ")
-          }
-        default: break
-      }
+      commonFixWhenHandlingDynamicArrangeInputs(target: incomingPhonabet)
 
       if "67890 ".contains(key) {
         if !consonant.isEmpty, semivowel.isEmpty, vowel.isEmpty {
