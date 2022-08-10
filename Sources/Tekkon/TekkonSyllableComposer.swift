@@ -1,26 +1,10 @@
 // (c) 2022 and onwards The vChewing Project (MIT-NTL License).
-/*
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-1. The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-2. No trademark license is granted to use the trade names, trademarks, service
-marks, or product names of Contributor, except as required to fulfill notice
-requirements above.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// ====================
+// This code is released under the MIT license (SPDX-License-Identifier: MIT)
+// ... with NTL restriction stating that:
+// No trademark license is granted to use the trade names, trademarks, service
+// marks, or product names of Contributor, except as required to fulfill notice
+// requirements defined in MIT License.
 
 import Foundation
 
@@ -938,7 +922,8 @@ public struct Tekkon {
   ///   - newToneOne: 對陰平指定新的標記。預設情況下該標記為空字串。
   /// - Returns: 轉換結果。
   static func cnvHanyuPinyinToPhona(target: String, newToneOne: String = "") -> String {
-    if target.contains("_") { return target }
+    /// 如果當前內容有任何除了半形英數內容以外的內容的話，就直接放棄轉換。
+    if target.contains("_") || !target.isNotPureAlphanumeral { return target }
     var result = target
     for key in Tekkon.mapHanyuPinyin.keys.sorted(by: { $0.count > $1.count }) {
       guard let value = Tekkon.mapHanyuPinyin[key] else { continue }
@@ -1461,4 +1446,13 @@ public struct Tekkon {
     "h": "ㄏ", "i": "ㄟ", "j": "ㄐ", "k": "ㄎ", "l": "ㄌ", "m": "ㄇ", "n": "ㄋ", "o": "ㄛ", "p": "ㄆ", "q": "ㄑ", "r": "ㄖ",
     "s": "ㄙ", "t": "ㄊ", "u": "ㄡ", "v": "ㄩ", "w": "ㄨ", "x": "ㄒ", "y": "ㄧ", "z": "ㄗ", " ": " ",
   ]
+}
+
+/// 檢測字串是否包含半形英數內容
+extension String {
+  fileprivate var isNotPureAlphanumeral: Bool {
+    let regex = ".*[^A-Za-z0-9].*"
+    let testString = NSPredicate(format: "SELF MATCHES %@", regex)
+    return testString.evaluate(with: self)
+  }
 }
