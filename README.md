@@ -23,7 +23,7 @@ Regarding pinyin input support, we only support: Hanyu Pinyin, Secondary Pinyin,
 
 ### §1. 初期化
 
-在你的 ctlInputMethod (InputMethodController) 或者 KeyHandler 內初期化一份 Tekkon.Composer 注拼槽副本（這裡將該副本命名為「`_composer`」）。由於 Tekkon.Composer 的型別是 Struct 型別，所以其副本必須為變數（var），否則無法自我 mutate。
+在你的 IMKInputController (InputMethodController) 或者 KeyHandler 內初期化一份 Tekkon.Composer 注拼槽副本（這裡將該副本命名為「`_composer`」）。由於 Tekkon.Composer 的型別是 Struct 型別，所以其副本必須為變數（var），否則無法自我 mutate。
 
 以 KeyHandler 為例：
 ```swift
@@ -34,10 +34,10 @@ class KeyHandler: NSObject {
 }
 ```
 
-以 ctlInputMethod 為例：
+以 IMKInputController 為例：
 ```swift
-@objc(ctlInputMethod)  // 根據 info.plist 內的情況來確定型別的命名
-class ctlInputMethod: IMKInputController {
+@objc(IMKMyInputController)  // 根據 info.plist 內的情況來確定型別的命名
+class IMKMyInputController: IMKInputController {
   // 先設定好變數
   var _composer: Tekkon.Composer = .init()
   ...
@@ -45,17 +45,17 @@ class ctlInputMethod: IMKInputController {
 ```
 
 
-由於 Swift 會在某個大副本（KeyHandler 或者 ctlInputMethod 副本）被銷毀的時候自動銷毀其中的全部副本，所以 Tekkon.Composer 的副本初期化沒必要寫在 init() 當中。但你很可能會想在 init() 時指定 Tekkon.Composer 所使用的注音排列（是大千？還是倚天傳統？還是神通？等）。
+由於 Swift 會在某個大副本（KeyHandler 或者 IMKInputController 副本）被銷毀的時候自動銷毀其中的全部副本，所以 Tekkon.Composer 的副本初期化沒必要寫在 init() 當中。但你很可能會想在 init() 時指定 Tekkon.Composer 所使用的注音排列（是大千？還是倚天傳統？還是神通？等）。
 
 這裡就需要在 _composer 這個副本所在的型別當中額外寫一個過程函式。
 
-下文範例 `ensureParser()` 是這樣：假設 mgrPrefs 用來管理 UserDefaults 資料，那麼就從裡面取資料來判定 _composer 的注音排列分析器究竟該選哪個。
+下文範例 `ensureParser()` 是這樣：假設 PrefMgr 用來管理 UserDefaults 資料，那麼就從裡面取資料來判定 _composer 的注音排列分析器究竟該選哪個。
 
 ```swift
   // MARK: - Extracted methods and functions (Tekkon).
 
   func ensureParser() {
-    switch mgrPrefs.mandarinParser {
+    switch PrefMgr.shared.mandarinParser {
       case MandarinParser.ofStandard.rawValue:
         _composer.ensureParser(arrange: .ofDachen)  // 大千
       case MandarinParser.ofETen.rawValue:
@@ -81,8 +81,8 @@ class ctlInputMethod: IMKInputController {
       case MandarinParser.ofUniversalPinyin.rawValue:
         _composer.ensureParser(arrange: .ofUniversalPinyin)  // 通用拼音
       default:
-        _composer.ensureParser(arrange: .ofDachen)  // 預設情況下按照 mgrPrefs 內定義預設值來處理
-        mgrPrefs.mandarinParser = MandarinParser.ofStandard.rawValue
+        _composer.ensureParser(arrange: .ofDachen)  // 預設情況下按照 PrefMgr 內定義預設值來處理
+        PrefMgr.shared.mandarinParser = MandarinParser.ofStandard.rawValue
     }
     _composer.clear()
   }
@@ -159,9 +159,9 @@ final class TekkonTests: XCTestCase {
 
 #### // 2. 訊號處理
 
-無論是 KeyHandler 還是 ctlInputMethod 都得要處理被傳入的 NSEvent 當中的 charCode 訊號。
+無論是 KeyHandler 還是 IMKInputController 都得要處理被傳入的 NSEvent 當中的 charCode 訊號。
 
-比如 ctlInputMethod 內：
+比如 IMKInputController 內：
 ```swift
 func handleInputText(_ inputText: String?, key keyCode: Int, modifiers flags: Int, client: Any?) -> Bool {
 ...
@@ -175,7 +175,7 @@ extension KeyHandler {
     input: InputHandler,
     state: InputState,
     stateCallback: @escaping (InputState) -> Void,
-    errorCallback: @escaping () -> Void
+    errorCallback: @escaping (String) -> Void
   ) -> Bool {
     let charCode: UniChar = input.charCode
 ...
@@ -244,8 +244,8 @@ if composeReading {  // 符合按鍵組合條件
   // See whether we have a unigram for this...
   // 向語言模型詢問是否有對應的記錄
   if !ifLangModelHasUnigrams(forKey: reading) {  // 如果沒有的話
-    IME.prtDebugIntel("B49C0979：語彙庫內無「\(reading)」的匹配記錄。")
-    errorCallback()  // 向狀態管理引擎回呼一個錯誤狀態
+    vCLog("B49C0979：語彙庫內無「\(reading)」的匹配記錄。")
+    errorCallback("114514")  // 向狀態管理引擎回呼一個錯誤狀態
     _composer.clear()  // 清空注拼槽的內容
     // 根據「天權星引擎 (威注音) 或 Gramambular (小麥) 的組字器是否為空」來判定回呼哪一種狀態
     stateCallback(
