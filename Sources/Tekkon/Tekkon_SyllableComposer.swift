@@ -55,10 +55,10 @@ extension Tekkon {
       switch isHanyuPinyin {
         case false:  // 注音輸出的場合
           let valReturnZhuyin = value.replacingOccurrences(of: " ", with: "")
-          return isTextBookStyle ? cnvZhuyinChainToTextbookReading(target: valReturnZhuyin) : valReturnZhuyin
+          return isTextBookStyle ? cnvZhuyinChainToTextbookReading(targetJoined: valReturnZhuyin) : valReturnZhuyin
         case true:  // 拼音輸出的場合
-          let valReturnPinyin = Tekkon.cnvPhonaToHanyuPinyin(target: value)
-          return isTextBookStyle ? Tekkon.cnvHanyuPinyinToTextbookStyle(target: valReturnPinyin) : valReturnPinyin
+          let valReturnPinyin = Tekkon.cnvPhonaToHanyuPinyin(targetJoined: value)
+          return isTextBookStyle ? Tekkon.cnvHanyuPinyinToTextbookStyle(targetJoined: valReturnPinyin) : valReturnPinyin
       }
     }
 
@@ -160,7 +160,7 @@ extension Tekkon {
 
     /// 按需更新拼音組音區的內容顯示。
     mutating func updateRomajiBuffer() {
-      romajiBuffer = Tekkon.cnvPhonaToHanyuPinyin(target: consonant.value + semivowel.value + vowel.value)
+      romajiBuffer = Tekkon.cnvPhonaToHanyuPinyin(targetJoined: consonant.value + semivowel.value + vowel.value)
     }
 
     /// 接受傳入的按鍵訊號時的處理，處理對象為 String。
@@ -217,6 +217,7 @@ extension Tekkon {
           case "ㄝ":
             if "ㄨ".contains(semivowel.value) { semivowel = "ㄩ" }
           case "ㄛ", "ㄥ":
+            if phonabet == "ㄛ", semivowel.value == "ㄩ" { semivowel = "ㄨ" }
             if "ㄅㄆㄇㄈ".contains(consonant.value), semivowel.value == "ㄨ" { semivowel.clear() }
           case "ㄟ":
             if "ㄋㄌ".contains(consonant.value), semivowel.value == "ㄨ" { semivowel.clear() }
