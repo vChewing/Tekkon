@@ -47,7 +47,7 @@ public extension Tekkon {
     }
 
     /// 當前注拼槽是否處於拼音模式。
-    var isPinyinMode: Bool { parser.rawValue >= 100 }
+    public var isPinyinMode: Bool { parser.rawValue >= 100 }
 
     /// 與 value 類似，這個函式就是用來決定輸入法組字區內顯示的注音/拼音內容，
     /// 但可以指定是否輸出教科書格式（拼音的調號在字母上方、注音的輕聲寫在左側）。
@@ -362,7 +362,7 @@ public extension Tekkon {
     /// - Remark: 該字串結果不能為空，否則組字引擎會炸。
     /// - Parameter pronouncable: 是否可以唸出。
     /// - Returns: 可用的查詢用注音字串，或者 nil。
-    func phonabetKeyForQuery(pronouncable: Bool) -> String? {
+    public func phonabetKeyForQuery(pronouncable: Bool) -> String? {
       let readingKey = getComposition()
       var validKeyGeneratable = false
       switch isPinyinMode {
