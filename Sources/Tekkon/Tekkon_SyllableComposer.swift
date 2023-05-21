@@ -415,7 +415,7 @@ public extension Tekkon {
       }
     }
 
-    /// 所有動態注音鍵盤佈局都會用到的共用糾錯處理步驟。
+    /// 所有動態注音排列都會用到的共用糾錯處理步驟。
     /// - Parameter incomingPhonabet: 傳入的注音 Phonabet。
     public mutating func commonFixWhenHandlingDynamicArrangeInputs(target incomingPhonabet: Phonabet) {
       // 處理特殊情形。
@@ -424,7 +424,7 @@ public extension Tekkon {
         switch consonant {
         case "ㄍ":
           switch incomingPhonabet {
-          case "ㄧ": consonant = "ㄑ" // ㄑㄧ
+          // 這裡不處理「ㄍㄧ」到「ㄑㄧ」的轉換，因為只有倚天26需要處理這個。
           case "ㄨ": consonant = "ㄍ" // ㄍㄨ
           case "ㄩ": consonant = "ㄑ" // ㄑㄩ
           default: break
@@ -473,6 +473,7 @@ public extension Tekkon {
 
       switch key {
       case "d": if !isPronouncable { consonant = "ㄉ" } else { intonation = "˙" }
+      case "e": if consonant == "ㄍ" { consonant = "ㄑ" }
       case "f": if !isPronouncable { consonant = "ㄈ" } else { intonation = "ˊ" }
       case "j": if !isPronouncable { consonant = "ㄖ" } else { intonation = "ˇ" }
       case "k": if !isPronouncable { consonant = "ㄎ" } else { intonation = "ˋ" }
@@ -496,7 +497,7 @@ public extension Tekkon {
       default: break
       }
 
-      // 處理特殊情形。
+      // 處理公共特殊情形。
       commonFixWhenHandlingDynamicArrangeInputs(target: incomingPhonabet)
 
       if "dfjk ".contains(key),
@@ -559,7 +560,7 @@ public extension Tekkon {
       default: break
       }
 
-      // 處理特殊情形。
+      // 處理公共特殊情形。
       commonFixWhenHandlingDynamicArrangeInputs(target: incomingPhonabet)
 
       if "dfjs ".contains(key) {
@@ -616,7 +617,7 @@ public extension Tekkon {
       default: break
       }
 
-      // 處理特殊情形。
+      // 處理公共特殊情形。
       commonFixWhenHandlingDynamicArrangeInputs(target: incomingPhonabet)
 
       if "67890 ".contains(key) {

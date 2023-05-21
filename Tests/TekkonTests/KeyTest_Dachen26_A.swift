@@ -11,11 +11,15 @@ import XCTest
 @testable import Tekkon
 
 extension TekkonTestsKeyboardArrangments {
-  func testDachen26KeysA() throws {
+  func testDachen26KeysTaigi() throws {
     var composer = Tekkon.Composer(arrange: .ofDachen26)
     XCTAssertEqual(composer.convertSequenceToRawComposition("dull"), "ㄎㄧㄤ")
     XCTAssertEqual(composer.convertSequenceToRawComposition("eule"), "ㄍㄧㄠˊ")
     XCTAssertEqual(composer.convertSequenceToRawComposition("eup"), "ㄍㄧㄣ")
+  }
+
+  func testDachen26KeysA() throws {
+    var composer = Tekkon.Composer(arrange: .ofDachen26)
     XCTAssertEqual(composer.convertSequenceToRawComposition("qqulle"), "ㄅㄧㄤˊ")
     XCTAssertEqual(composer.convertSequenceToRawComposition("qqulld"), "ㄅㄧㄤˋ")
     XCTAssertEqual(composer.convertSequenceToRawComposition("wwjll"), "ㄉㄨㄤ")

@@ -11,11 +11,15 @@ import XCTest
 @testable import Tekkon
 
 extension TekkonTestsKeyboardArrangments {
-  func testHsuKeysA() throws {
+  func testHsuKeysTaigi() throws {
     var composer = Tekkon.Composer(arrange: .ofHsu)
     XCTAssertEqual(composer.convertSequenceToRawComposition("kek"), "ㄎㄧㄤ")
-    // XCTAssertEqual(composer.convertSequenceToRawComposition("vezf"), "ㄍㄧㄠˊ")
-    // XCTAssertEqual(composer.convertSequenceToRawComposition("gen"), "ㄍㄧㄣ")
+    XCTAssertEqual(composer.convertSequenceToRawComposition("gewd"), "ㄍㄧㄠˊ")
+    XCTAssertEqual(composer.convertSequenceToRawComposition("gen"), "ㄍㄧㄣ")
+  }
+
+  func testHsuKeysA() throws {
+    var composer = Tekkon.Composer(arrange: .ofHsu)
     XCTAssertEqual(composer.convertSequenceToRawComposition("bekd"), "ㄅㄧㄤˊ")
     XCTAssertEqual(composer.convertSequenceToRawComposition("bekj"), "ㄅㄧㄤˋ")
     XCTAssertEqual(composer.convertSequenceToRawComposition("dxk"), "ㄉㄨㄤ")
