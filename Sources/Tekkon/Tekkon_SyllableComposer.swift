@@ -130,39 +130,45 @@ public extension Tekkon {
     /// 注意：回傳結果會受到當前注音排列 parser 屬性的影響。
     /// - Parameters:
     ///   - key: 傳入的 UniChar 內容。
-    public func inputValidityCheck(key inputKey: UInt32 = 0) -> Bool {
-      if let scalar = UnicodeScalar(inputKey) {
-        let input = String(scalar)
-        switch parser {
-        case .ofDachen:
-          return Tekkon.mapQwertyDachen[input] != nil
-        case .ofDachen26:
-          return Tekkon.mapDachenCP26StaticKeys[input] != nil
-        case .ofETen:
-          return Tekkon.mapQwertyETenTraditional[input] != nil
-        case .ofHsu:
-          return Tekkon.mapHsuStaticKeys[input] != nil
-        case .ofETen26:
-          return Tekkon.mapETen26StaticKeys[input] != nil
-        case .ofIBM:
-          return Tekkon.mapQwertyIBM[input] != nil
-        case .ofMiTAC:
-          return Tekkon.mapQwertyMiTAC[input] != nil
-        case .ofSeigyou:
-          return Tekkon.mapSeigyou[input] != nil
-        case .ofFakeSeigyou:
-          return Tekkon.mapFakeSeigyou[input] != nil
-        case .ofStarlight:
-          return Tekkon.mapStarlightStaticKeys[input] != nil
-        case .ofAlvinLiu:
-          return Tekkon.mapAlvinLiuStaticKeys[input] != nil
-        case .ofWadeGilesPinyin:
-          return Tekkon.mapWadeGilesPinyinKeys.has(string: input)
-        case .ofHanyuPinyin, .ofSecondaryPinyin, .ofYalePinyin, .ofHualuoPinyin, .ofUniversalPinyin:
-          return Tekkon.mapArayuruPinyin.has(string: input)
-        }
+    public func inputValidityCheck(key inputKey: UInt16 = 0) -> Bool {
+      guard let scalar = UnicodeScalar(inputKey) else { return false }
+      return inputValidityCheck(charStr: String(scalar))
+    }
+
+    /// 用於檢測「某個輸入字符訊號的合規性」的函式。
+    ///
+    /// 注意：回傳結果會受到當前注音排列 parser 屬性的影響。
+    /// - Parameters:
+    ///   - charStr: 傳入的字元（String）。
+    public func inputValidityCheck(charStr input: String) -> Bool {
+      switch parser {
+      case .ofDachen:
+        return Tekkon.mapQwertyDachen[input] != nil
+      case .ofDachen26:
+        return Tekkon.mapDachenCP26StaticKeys[input] != nil
+      case .ofETen:
+        return Tekkon.mapQwertyETenTraditional[input] != nil
+      case .ofHsu:
+        return Tekkon.mapHsuStaticKeys[input] != nil
+      case .ofETen26:
+        return Tekkon.mapETen26StaticKeys[input] != nil
+      case .ofIBM:
+        return Tekkon.mapQwertyIBM[input] != nil
+      case .ofMiTAC:
+        return Tekkon.mapQwertyMiTAC[input] != nil
+      case .ofSeigyou:
+        return Tekkon.mapSeigyou[input] != nil
+      case .ofFakeSeigyou:
+        return Tekkon.mapFakeSeigyou[input] != nil
+      case .ofStarlight:
+        return Tekkon.mapStarlightStaticKeys[input] != nil
+      case .ofAlvinLiu:
+        return Tekkon.mapAlvinLiuStaticKeys[input] != nil
+      case .ofWadeGilesPinyin:
+        return Tekkon.mapWadeGilesPinyinKeys.has(string: input)
+      case .ofHanyuPinyin, .ofSecondaryPinyin, .ofYalePinyin, .ofHualuoPinyin, .ofUniversalPinyin:
+        return Tekkon.mapArayuruPinyin.has(string: input)
       }
-      return false
     }
 
     /// 按需更新拼音組音區的內容顯示。
