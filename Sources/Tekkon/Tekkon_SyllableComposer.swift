@@ -6,8 +6,6 @@
 // marks, or product names of Contributor, except as required to fulfill notice
 // requirements defined in MIT License.
 
-import Foundation
-
 public extension Tekkon {
   // MARK: - Syllable Composer
 
@@ -65,7 +63,7 @@ public extension Tekkon {
     public func getComposition(isHanyuPinyin: Bool = false, isTextBookStyle: Bool = false) -> String {
       switch isHanyuPinyin {
       case false: // 注音輸出的場合
-        let valReturnZhuyin = value.replacingOccurrences(of: " ", with: "")
+        let valReturnZhuyin = value.swapping(" ", with: "")
         return isTextBookStyle ? cnvPhonaToTextbookReading(target: valReturnZhuyin) : valReturnZhuyin
       case true: // 拼音輸出的場合
         let valReturnPinyin = Tekkon.cnvPhonaToHanyuPinyin(targetJoined: value)
@@ -87,7 +85,7 @@ public extension Tekkon {
       case "˙": toneReturned = "5"
       default: break
       }
-      return romajiBuffer.replacingOccurrences(of: "v", with: "ü") + toneReturned
+      return romajiBuffer.swapping("v", with: "ü") + toneReturned
     }
 
     /// 注拼槽內容是否為空。
@@ -132,7 +130,7 @@ public extension Tekkon {
     /// 注意：回傳結果會受到當前注音排列 parser 屬性的影響。
     /// - Parameters:
     ///   - key: 傳入的 UniChar 內容。
-    public func inputValidityCheck(key inputKey: UniChar = 0) -> Bool {
+    public func inputValidityCheck(key inputKey: UInt32 = 0) -> Bool {
       if let scalar = UnicodeScalar(inputKey) {
         let input = String(scalar)
         switch parser {
@@ -159,9 +157,9 @@ public extension Tekkon {
         case .ofAlvinLiu:
           return Tekkon.mapAlvinLiuStaticKeys[input] != nil
         case .ofWadeGilesPinyin:
-          return Tekkon.mapWadeGilesPinyinKeys.contains(input)
+          return Tekkon.mapWadeGilesPinyinKeys.has(string: input)
         case .ofHanyuPinyin, .ofSecondaryPinyin, .ofYalePinyin, .ofHualuoPinyin, .ofUniversalPinyin:
-          return Tekkon.mapArayuruPinyin.contains(input)
+          return Tekkon.mapArayuruPinyin.has(string: input)
         }
       }
       return false
@@ -222,7 +220,7 @@ public extension Tekkon {
     /// 如果是諸如複合型注音排列的話，翻譯結果有可能為空，但翻譯過程已經處理好聲介韻調分配了。
     /// - Parameters:
     ///   - fromCharCode: 傳入的 UniChar 內容。
-    public mutating func receiveKey(fromCharCode inputCharCode: UniChar = 0) {
+    public mutating func receiveKey(fromCharCode inputCharCode: UInt16 = 0) {
       if let scalar = UnicodeScalar(inputCharCode) {
         receiveKey(fromString: String(scalar))
       }
@@ -781,6 +779,6 @@ public extension Tekkon {
 
 private extension String {
   func doesHave(_ target: String) -> Bool {
-    target.isEmpty ? isEmpty : contains(target)
+    has(string: target)
   }
 }
