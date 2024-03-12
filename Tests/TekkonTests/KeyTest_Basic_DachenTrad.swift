@@ -34,7 +34,6 @@ final class TekkonTestsKeyboardArrangments: XCTestCase {
 internal extension Tekkon.Composer {
   // Exactly "convertSequenceToRawComposition()" but with shorter symbol name.
   mutating func cS2RC(_ givenSequence: String = "") -> String {
-    receiveSequence(givenSequence)
-    return value
+    return receiveSequence(givenSequence)
   }
 }

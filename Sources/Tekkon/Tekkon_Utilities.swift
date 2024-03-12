@@ -35,7 +35,7 @@ public extension Tekkon {
   /// - Parameters:
   ///   - target: 要拿來做轉換處理的讀音。
   /// - Returns: 經過轉換處理的讀音。
-  static func cnvPhonaToTextbookReading(target: String) -> String {
+  static func cnvPhonaToTextbookStyle(target: String) -> String {
     var newString = target
     if String(target.reversed()[0]) == "˙" {
       newString = String(target.dropLast())

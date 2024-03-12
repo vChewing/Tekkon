@@ -64,7 +64,7 @@ public extension Tekkon {
       switch isHanyuPinyin {
       case false: // 注音輸出的場合
         let valReturnZhuyin = value.swapping(" ", with: "")
-        return isTextBookStyle ? cnvPhonaToTextbookReading(target: valReturnZhuyin) : valReturnZhuyin
+        return isTextBookStyle ? cnvPhonaToTextbookStyle(target: valReturnZhuyin) : valReturnZhuyin
       case true: // 拼音輸出的場合
         let valReturnPinyin = Tekkon.cnvPhonaToHanyuPinyin(targetJoined: value)
         return isTextBookStyle ? Tekkon.cnvHanyuPinyinToTextbookStyle(targetJoined: valReturnPinyin) : valReturnPinyin
@@ -95,7 +95,7 @@ public extension Tekkon {
     }
 
     /// 注拼槽內容是否可唸。
-    public var isPronouncable: Bool {
+    public var isPronounceable: Bool {
       !vowel.isEmpty || !semivowel.isEmpty || !consonant.isEmpty
     }
 
@@ -290,11 +290,12 @@ public extension Tekkon {
     /// - Parameters:
     ///   - givenSequence: 傳入的 String 內容，用以處理一整串擊鍵輸入。
     ///   - isRomaji: 如果輸入的字串是諸如漢語拼音這樣的西文字母拼音的話，請啟用此選項。
-    public mutating func receiveSequence(_ givenSequence: String = "", isRomaji: Bool = false) {
+    /// - Returns: 處理之後的結果。
+    @discardableResult public mutating func receiveSequence(_ givenSequence: String = "", isRomaji: Bool = false) -> String {
       clear()
       guard isRomaji else {
         givenSequence.forEach { receiveKey(fromString: $0.description) }
-        return
+        return value
       }
       var dictResult: String?
       switch parser {
@@ -313,13 +314,6 @@ public extension Tekkon {
       default: break
       }
       dictResult?.forEach { receiveKey(fromPhonabet: $0.description) }
-    }
-
-    /// 處理一連串的按鍵輸入、且返回被處理之後的注音（陰平為空格）。
-    /// - Parameters:
-    ///   - givenSequence: 傳入的 String 內容，用以處理一整串擊鍵輸入。
-    public mutating func convertSequenceToRawComposition(_ givenSequence: String = "") -> String {
-      receiveSequence(givenSequence)
       return value
     }
 
@@ -366,22 +360,29 @@ public extension Tekkon {
     ///
     /// 如果輸入法的辭典索引是漢語拼音的話，你可能用不上這個函式。
     /// - Remark: 該字串結果不能為空，否則組字引擎會炸。
-    /// - Parameter pronouncable: 是否可以唸出。
+    /// - Parameter pronounceableOnly: 是否可以唸出。
     /// - Returns: 可用的查詢用注音字串，或者 nil。
-    public func phonabetKeyForQuery(pronouncable: Bool) -> String? {
+    public func phonabetKeyForQuery(pronounceableOnly: Bool) -> String? {
       let readingKey = getComposition()
-      var validKeyGeneratable = false
+      var validKeyAvailable = false
+      let isPinyinMode = isPinyinMode
+      switch (isPinyinMode, pronounceableOnly) {
+      case (false, true): validKeyAvailable = isPronounceable
+      case (false, false): validKeyAvailable = !readingKey.isEmpty
+      case (true, _): validKeyAvailable = isPronounceable
+      }
+
       switch isPinyinMode {
       case false:
-        switch pronouncable {
+        switch pronounceableOnly {
         case false:
-          validKeyGeneratable = !readingKey.isEmpty
+          validKeyAvailable = !readingKey.isEmpty
         case true:
-          validKeyGeneratable = isPronouncable
+          validKeyAvailable = isPronounceable
         }
-      case true: validKeyGeneratable = isPronouncable
+      case true: validKeyAvailable = isPronounceable
       }
-      return validKeyGeneratable ? readingKey : nil
+      return validKeyAvailable ? readingKey : nil
     }
 
     // MARK: - Parser Processing
@@ -486,10 +487,10 @@ public extension Tekkon {
       let keysToHandleHere = "dfhjklmnpqtw"
 
       switch key {
-      case "d" where isPronouncable: strReturn = "˙"
-      case "f" where isPronouncable: strReturn = "ˊ"
-      case "j" where isPronouncable: strReturn = "ˇ"
-      case "k" where isPronouncable: strReturn = "ˋ"
+      case "d" where isPronounceable: strReturn = "˙"
+      case "f" where isPronounceable: strReturn = "ˊ"
+      case "j" where isPronounceable: strReturn = "ˇ"
+      case "k" where isPronounceable: strReturn = "ˋ"
       case "e" where consonant == "ㄍ": consonant = "ㄑ"
       case "p" where !consonant.isEmpty || semivowel == "ㄧ": strReturn = "ㄡ"
       case "h" where !consonant.isEmpty || !semivowel.isEmpty: strReturn = "ㄦ"
@@ -539,10 +540,10 @@ public extension Tekkon {
       let keysToHandleHere = "acdefghjklmns"
 
       switch key {
-      case "d" where isPronouncable: strReturn = "ˊ"
-      case "f" where isPronouncable: strReturn = "ˇ"
-      case "s" where isPronouncable: strReturn = "˙"
-      case "j" where isPronouncable: strReturn = "ˋ"
+      case "d" where isPronounceable: strReturn = "ˊ"
+      case "f" where isPronounceable: strReturn = "ˇ"
+      case "s" where isPronounceable: strReturn = "˙"
+      case "j" where isPronounceable: strReturn = "ˋ"
       case "a" where !consonant.isEmpty || !semivowel.isEmpty: strReturn = "ㄟ"
       case "v" where !semivowel.isEmpty: strReturn = "ㄑ"
       case "c" where !semivowel.isEmpty: strReturn = "ㄒ"
@@ -648,10 +649,10 @@ public extension Tekkon {
       var strReturn = Tekkon.mapDachenCP26StaticKeys[key] ?? ""
 
       switch key {
-      case "e" where isPronouncable: strReturn = "ˊ"
-      case "r" where isPronouncable: strReturn = "ˇ"
-      case "d" where isPronouncable: strReturn = "ˋ"
-      case "y" where isPronouncable: strReturn = "˙"
+      case "e" where isPronounceable: strReturn = "ˊ"
+      case "r" where isPronounceable: strReturn = "ˇ"
+      case "d" where isPronounceable: strReturn = "ˋ"
+      case "y" where isPronounceable: strReturn = "˙"
       case "b" where !consonant.isEmpty || !semivowel.isEmpty: strReturn = "ㄝ"
       case "i" where vowel.isEmpty || vowel == "ㄞ": strReturn = "ㄛ"
       case "l" where vowel.isEmpty || vowel == "ㄤ": strReturn = "ㄠ"
@@ -711,10 +712,10 @@ public extension Tekkon {
       let keysToHandleHere = "dfjlegnhkbmc"
 
       switch key {
-      case "d" where isPronouncable: strReturn = "˙"
-      case "f" where isPronouncable: strReturn = "ˊ"
-      case "j" where isPronouncable: strReturn = "ˇ"
-      case "l" where isPronouncable: strReturn = "ˋ"
+      case "d" where isPronounceable: strReturn = "˙"
+      case "f" where isPronounceable: strReturn = "ˊ"
+      case "j" where isPronounceable: strReturn = "ˇ"
+      case "l" where isPronounceable: strReturn = "ˋ"
       case "e" where "ㄧㄩ".doesHave(semivowel.value): strReturn = "ㄝ"
       case "g" where !consonant.isEmpty || !semivowel.isEmpty: strReturn = "ㄤ"
       case "n" where !consonant.isEmpty || !semivowel.isEmpty: strReturn = "ㄣ"
