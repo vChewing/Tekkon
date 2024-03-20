@@ -15,7 +15,7 @@ public extension Tekkon {
   static func cnvPhonaToHanyuPinyin(targetJoined: String) -> String {
     var targetConverted = targetJoined
     for pair in arrPhonaToHanyuPinyin {
-      targetConverted = targetConverted.swapping(pair[0], with: pair[1])
+      targetConverted = targetConverted.swapping(pair.0, with: pair.1)
     }
     return targetConverted
   }
@@ -26,7 +26,7 @@ public extension Tekkon {
   static func cnvHanyuPinyinToTextbookStyle(targetJoined: String) -> String {
     var targetConverted = targetJoined
     for pair in arrHanyuPinyinTextbookStyleConversionTable {
-      targetConverted = targetConverted.swapping(pair[0], with: pair[1])
+      targetConverted = targetConverted.swapping(pair.0, with: pair.1)
     }
     return targetConverted
   }
