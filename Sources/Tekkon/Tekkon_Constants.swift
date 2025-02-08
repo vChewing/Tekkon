@@ -243,7 +243,7 @@ public enum Tekkon {
 
   /// 韋氏拼音專用會用到的陣列，用 Strings 反而省事一些。
   /// 這裡同時兼容大千注音的調號數字，所以也將 6、7 號數字鍵放在允許範圍內。
-  static var mapWadeGilesPinyinKeys: String = mapArayuruPinyin + "'"
+  static let mapWadeGilesPinyinKeys: String = mapArayuruPinyin + "'"
 
   /// 任何拼音都會用到的聲調鍵陣列
   static let mapArayuruPinyinIntonation: [String: String] = [
