@@ -14,7 +14,6 @@ extension TekkonTestsKeyboardArrangments {
   func testAlvinLiuKeysTaigi() throws {
     var c = Tekkon.Composer(arrange: .ofAlvinLiu)
     var counter = 0
-
     Self.checkEq(&counter, &c, "kig", "ㄎㄧㄤ")
     Self.checkEq(&counter, &c, "giwf", "ㄍㄧㄠˊ")
     Self.checkEq(&counter, &c, "gin", "ㄍㄧㄣ")
@@ -24,9 +23,6 @@ extension TekkonTestsKeyboardArrangments {
   func testAlvinLiuKeysA() throws {
     var c = Tekkon.Composer(arrange: .ofAlvinLiu)
     var counter = 0
-    Self.checkEq(&counter, &c, "kig", "ㄎㄧㄤ")
-    Self.checkEq(&counter, &c, "giwf", "ㄍㄧㄠˊ")
-    Self.checkEq(&counter, &c, "gin", "ㄍㄧㄣ")
     Self.checkEq(&counter, &c, "bigf", "ㄅㄧㄤˊ")
     Self.checkEq(&counter, &c, "bigl", "ㄅㄧㄤˋ")
     Self.checkEq(&counter, &c, "dug", "ㄉㄨㄤ")
