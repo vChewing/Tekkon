@@ -1,3 +1,4 @@
+.index-build/
 !**/[Pp]ackages/build/
 !*.[Cc]ache/
 !.axoCover/settings.json
