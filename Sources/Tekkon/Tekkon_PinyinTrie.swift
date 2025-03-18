@@ -162,7 +162,8 @@ extension Tekkon.PinyinTrie {
   /// ```
   public func deductChoppedPinyinToZhuyin(
     _ chopped: [String],
-    chopCaseSeparator: Character = "&"
+    chopCaseSeparator: Character = "&",
+    initialZhuyinOnly: Bool = true
   )
     -> [String] {
     guard parser.isPinyin else { return chopped }
@@ -172,17 +173,23 @@ extension Tekkon.PinyinTrie {
 
     for slice in chopped {
       let fetched = search(slice)
+
+      // 對於其他情況，保持原有行為
       switch fetched.count {
-      case 1: choppedZhuyinCandidates.append(
-          fetched.joined(separator: chopCaseSeparator.description)
-        )
+      case 1:
+        choppedZhuyinCandidates.append(fetched.joined(separator: chopCaseSeparator.description))
       case 2...:
-        var simplified = fetched.compactMap(\.first?.description)
-        simplified = Set(simplified).sorted()
-        choppedZhuyinCandidates.append(
-          simplified.joined(separator: chopCaseSeparator.description)
-        )
-      default: choppedZhuyinCandidates.append(slice)
+        var uniqueFetched: [String] = Array(Set(fetched)).sorted()
+        trimProcess: if initialZhuyinOnly {
+          for i in (1 ... 3).reversed() {
+            guard uniqueFetched.count > i else { break trimProcess }
+            uniqueFetched = Set(fetched.map { $0.prefix(i).description }).sorted()
+          }
+        }
+        choppedZhuyinCandidates
+          .append(uniqueFetched.joined(separator: chopCaseSeparator.description))
+      default:
+        choppedZhuyinCandidates.append(slice)
       }
     }
 

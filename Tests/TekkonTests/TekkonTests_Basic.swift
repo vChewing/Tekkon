@@ -205,4 +205,74 @@ final class TekkonTestsBasic: XCTestCase {
     // 測試這種情形：「如果傳入的字串不包含任何半形英數內容的話，那麼應該直接將傳入的字串原樣返回」。
     XCTAssertEqual(Tekkon.cnvHanyuPinyinToPhona(targetJoined: "ㄅㄧㄢˋ-˙ㄌㄜ-ㄊㄧㄢ"), "ㄅㄧㄢˋ-˙ㄌㄜ-ㄊㄧㄢ")
   }
+
+  func testChoppingRawComplex() {
+    let trieZhuyin = Tekkon.PinyinTrie(parser: .ofDachen)
+    let triePinyin = Tekkon.PinyinTrie(parser: .ofHanyuPinyin)
+    do {
+      let choppedZhuyin = trieZhuyin.chop("ㄅㄩㄝㄓㄨㄑㄕㄢㄌㄧㄌㄧㄤ")
+      let choppedPinyin = triePinyin.chop("byuezqsll")
+      XCTAssertTrue(choppedZhuyin == ["ㄅ", "ㄩㄝ", "ㄓㄨ", "ㄑ", "ㄕㄢ", "ㄌㄧ", "ㄌㄧㄤ"])
+      XCTAssertTrue(choppedPinyin == ["b", "yue", "z", "q", "s", "l", "l"])
+      let choppedZhuyin2 = trieZhuyin.chop("ㄕㄐㄧㄉㄓ")
+      XCTAssertTrue(choppedZhuyin2 == ["ㄕ", "ㄐㄧ", "ㄉ", "ㄓ"])
+    }
+    do {
+      let choppedPinyin = triePinyin.chop("yod")
+      XCTAssertTrue(choppedPinyin == ["yo", "d"])
+      let deducted = triePinyin.deductChoppedPinyinToZhuyin(choppedPinyin)
+      XCTAssertTrue(deducted.first == "ㄧㄛ&ㄧㄡ&ㄩㄥ")
+    }
+  }
+
+  func testPinyinTrieConvertingPinyinChopsToZhuyin() {
+    // 漢語拼音：
+    do {
+      let trie = Tekkon.PinyinTrie(parser: .ofHanyuPinyin)
+      let choppedPinyin = ["b", "yue", "z", "q", "s", "l", "l"]
+      let deductedZhuyin = trie.deductChoppedPinyinToZhuyin(choppedPinyin)
+      let expected: [String] = ["ㄅ", "ㄩㄝ", "ㄓ&ㄗ", "ㄑ", "ㄕ&ㄙ", "ㄌ", "ㄌ"]
+      XCTAssertTrue(deductedZhuyin == expected)
+    }
+    // 國音二式：
+    do {
+      let trie = Tekkon.PinyinTrie(parser: .ofSecondaryPinyin)
+      let choppedPinyin = ["ch", "f", "h", "s"]
+      let deductedZhuyin = trie.deductChoppedPinyinToZhuyin(choppedPinyin)
+      let expected: [String] = ["ㄑ&ㄔ", "ㄈ", "ㄏ", "ㄒ&ㄕ&ㄙ"]
+      XCTAssertTrue(deductedZhuyin == expected)
+    }
+    // 耶魯拼音：
+    do {
+      let trie = Tekkon.PinyinTrie(parser: .ofYalePinyin)
+      let choppedPinyin = ["ch", "f", "h", "s"]
+      let deductedZhuyin = trie.deductChoppedPinyinToZhuyin(choppedPinyin)
+      let expected: [String] = ["ㄑ&ㄔ", "ㄈ", "ㄏ", "ㄒ&ㄕ&ㄙ"]
+      XCTAssertTrue(deductedZhuyin == expected)
+    }
+    // 華羅拼音：
+    do {
+      let trie = Tekkon.PinyinTrie(parser: .ofHualuoPinyin)
+      let choppedPinyin = ["ch", "f", "h", "s"]
+      let deductedZhuyin = trie.deductChoppedPinyinToZhuyin(choppedPinyin)
+      let expected: [String] = ["ㄑ&ㄔ", "ㄈ", "ㄏ", "ㄒ&ㄕ&ㄙ"]
+      XCTAssertTrue(deductedZhuyin == expected)
+    }
+    // 通用拼音：
+    do {
+      let trie = Tekkon.PinyinTrie(parser: .ofUniversalPinyin)
+      let choppedPinyin = ["ch", "f", "h", "s"]
+      let deductedZhuyin = trie.deductChoppedPinyinToZhuyin(choppedPinyin)
+      let expected: [String] = ["ㄔ", "ㄈ", "ㄏ", "ㄒ&ㄕ&ㄙ"]
+      XCTAssertTrue(deductedZhuyin == expected)
+    }
+    // 韋氏拼音：
+    do {
+      let trie = Tekkon.PinyinTrie(parser: .ofWadeGilesPinyin)
+      let choppedPinyin = ["ch", "f", "h", "s"]
+      let deductedZhuyin = trie.deductChoppedPinyinToZhuyin(choppedPinyin)
+      let expected: [String] = ["ㄐ&ㄑ&ㄓ&ㄔ", "ㄈ", "ㄏ&ㄒ", "ㄕ&ㄙ"]
+      XCTAssertTrue(deductedZhuyin == expected)
+    }
+  }
 }
