@@ -15,7 +15,6 @@ extension Tekkon {
 
       // 初始化時，將根節點加入到節點辭典中
       root.id = 0
-      root.parentID = nil
       root.character = ""
       nodes[0] = root
 
@@ -39,13 +38,11 @@ extension Tekkon {
       public init(
         id: Int? = nil,
         entries: [String] = [],
-        parentID: Int? = nil,
         character: String = "",
         readingKey: String = ""
       ) {
         self.id = id
         self.entries = entries
-        self.parentID = parentID
         self.character = character
         self.children = [:]
         self.readingKey = readingKey
@@ -55,7 +52,6 @@ extension Tekkon {
 
       public internal(set) var id: Int?
       public internal(set) var entries: [String] = []
-      public internal(set) var parentID: Int?
       public internal(set) var character: String = ""
       public internal(set) var readingKey: String = "" // 新增：存儲節點對應的讀音鍵
       public internal(set) var children: [String: Int] = [:] // 新的結構：字符 -> 子節點ID映射
@@ -71,7 +67,6 @@ extension Tekkon {
       public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(entries)
-        hasher.combine(parentID)
         hasher.combine(character)
         hasher.combine(readingKey)
         hasher.combine(children)
@@ -108,7 +103,7 @@ extension Tekkon.PinyinTrie {
       }
       // 創建新的子節點
       let newNodeID = nodes.count
-      let newNode = TNode(id: newNodeID, parentID: currentNodeID, character: charStr)
+      let newNode = TNode(id: newNodeID, character: charStr)
 
       // 更新關係
       currentNode.children[charStr] = newNodeID
