@@ -153,7 +153,7 @@ extension Tekkon.PinyinTrie {
   /// 期許結果是：
   ///
   /// ```swift
-  /// [["ㄅ"], ["ㄩㄝ"], ["ㄓ", "ㄗ"], ["ㄑ"], ["ㄕ", "ㄙ"], ["ㄌ"], ["ㄌ"]]
+  /// ["ㄅ", "ㄩㄝ", "ㄓ&ㄗ", "ㄑ", "ㄕ&ㄙ", "ㄌ", "ㄌ"]
   /// ```
   public func deductChoppedPinyinToZhuyin(
     _ chopped: [String],
