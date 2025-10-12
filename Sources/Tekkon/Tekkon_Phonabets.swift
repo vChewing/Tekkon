@@ -146,9 +146,9 @@ extension Tekkon {
 
   // MARK: - Phonabet Structure
 
-  /// 注音符號型別。本身與字串差不多，但卻只能被設定成一個注音符號字符。
+  /// 注音符號型別。本身與字串差不多，但卻只能被設定成一個注音符號字元。
   /// 然後會根據自身的 value 的內容值自動計算自身的 PhoneType 類型（聲介韻調假）。
-  /// 如果遇到被設為多個字符、或者字符不對的情況的話，value 會被清空、PhoneType 會變成 null。
+  /// 如果遇到被設為多個字元、或者字元不對的情況的話，value 會被清空、PhoneType 會變成 null。
   /// 賦值時最好直接重新 init 且一直用 let 來初期化 Phonabet。
   /// 其實 value 對外只讀，對內的話另有 valueStorage 代為存儲內容。這樣比較安全一些。
   @frozen
@@ -239,7 +239,13 @@ extension Tekkon {
 
 // MARK: - Unicode.Scalar + Codable
 
-extension Unicode.Scalar: Codable {
+#if hasFeature(RetroactiveAttribute)
+  extension Unicode.Scalar: @retroactive Codable {}
+#else
+  extension Unicode.Scalar: Codable {}
+#endif
+
+extension Unicode.Scalar {
   public func encode(to encoder: any Encoder) throws {
     var container = encoder.singleValueContainer()
     try container.encode(value)

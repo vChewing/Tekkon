@@ -22,7 +22,7 @@ extension Tekkon {
     /// 初期化一個新的注拼槽。可以藉由 @input 參數指定初期已經傳入的按鍵訊號。
     /// 還可以在初期化時藉由 @arrange 參數來指定注音排列（預設為「.ofDachen」大千佈局）。
     /// - Parameters:
-    ///   - input: 傳入的 String 內容，用以處理單個字符。
+    ///   - input: 傳入的 String 內容，用以處理單個字元。
     ///   - arrange: 要使用的注音排列。
     ///   - correction: 是否對錯誤的注音讀音組合做出自動糾正處理。
     public init(
@@ -139,7 +139,7 @@ extension Tekkon {
 
     // MARK: - Public Functions
 
-    /// 用於檢測「某個輸入字符訊號的合規性」的函式。
+    /// 用於檢測「某個輸入字元訊號的合規性」的函式。
     ///
     /// 注意：回傳結果會受到當前注音排列 parser 屬性的影響。
     /// - Parameters:
@@ -149,7 +149,7 @@ extension Tekkon {
       return inputValidityCheck(charStr: String(scalar))
     }
 
-    /// 用於檢測「某個輸入字符訊號的合規性」的函式。
+    /// 用於檢測「某個輸入字元訊號的合規性」的函式。
     ///
     /// 注意：回傳結果會受到當前注音排列 parser 屬性的影響。
     /// - Parameters:

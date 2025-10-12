@@ -54,7 +54,7 @@ extension Tekkon {
       public internal(set) var entries: [String] = []
       public internal(set) var character: String = ""
       public internal(set) var readingKey: String = "" // 新增：存儲節點對應的讀音鍵
-      public internal(set) var children: [String: Int] = [:] // 新的結構：字符 -> 子節點ID映射
+      public internal(set) var children: [String: Int] = [:] // 新的結構：字元 -> 子節點ID映射
 
       public static func == (
         lhs: TNode,
@@ -89,34 +89,34 @@ extension Tekkon {
 extension Tekkon.PinyinTrie {
   func insert(_ key: String, entry: String) {
     var currentNode = root
-    var currentNodeID = 0
 
-    // 遍歷關鍵字的每個字符
-    key.forEach { char in
+    // 遍歷關鍵字的每個字元
+    for char in key {
       let charStr = char.description
       if let childNodeID = currentNode.children[charStr],
          let matchedNode = nodes[childNodeID] {
         // 有效的子節點已存在，繼續遍歷
-        currentNodeID = childNodeID
         currentNode = matchedNode
-        return
+        continue
       }
+
       // 創建新的子節點
       let newNodeID = nodes.count
       let newNode = TNode(id: newNodeID, character: charStr)
 
-      // 更新關係
+      // 更新父節點與節點辭典
       currentNode.children[charStr] = newNodeID
+      if let currentID = currentNode.id { nodes[currentID] = currentNode }
       nodes[newNodeID] = newNode
 
       // 更新當前節點
       currentNode = newNode
-      currentNodeID = newNodeID
     }
 
     // 在最終節點添加詞條
     currentNode.readingKey = key
     currentNode.entries.append(entry)
+    if let currentID = currentNode.id { nodes[currentID] = currentNode }
   }
 
   func search(_ key: String) -> [String] {
@@ -233,7 +233,7 @@ extension Tekkon.PinyinTrie {
         }
       }
 
-      // 如果沒找到相符的條目，將當前字符作為單獨的一項
+      // 如果沒找到相符的條目，將當前字元作為單獨的一項
       if !foundMatch {
         result.append(String(givenCharComplex[currentPosition]))
         currentPosition += 1
