@@ -1,4 +1,4 @@
-// swift-tools-version: 6.2
+// swift-tools-version: 5.7
 import PackageDescription
 
 let package = Package(
@@ -14,10 +14,6 @@ let package = Package(
     .target(
       name: "Tekkon",
       dependencies: []
-    ),
-    .testTarget(
-      name: "TekkonTests",
-      dependencies: ["Tekkon"],
     ),
   ]
 )
