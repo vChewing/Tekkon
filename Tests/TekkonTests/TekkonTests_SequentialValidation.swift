@@ -102,13 +102,7 @@ struct TekkonTestsSequentialValidation {
   /// 動態注音排列之合法編碼散見於測試素材；逐筆檢證其皆應被 `suffixOnly` 模式接受。
   @Test("[Tekkon] RawKeyOrder_DynamicLayouts_Corpus")
   func testDynamicLayoutsCorpus() async throws {
-    let parserOrder: [Tekkon.MandarinParser] = [
-      .ofDachen26,
-      .ofETen26,
-      .ofHsu,
-      .ofStarlight,
-      .ofAlvinLiu,
-    ]
+    let parserOrder: [Tekkon.MandarinParser] = [.ofDachen26, .ofETen26, .ofHsu, .ofStarlight, .ofAlvinLiu]
     var typings: [[String]] = .init(repeating: [], count: parserOrder.count)
     testTable4DynamicLayouts.split(separator: "\n").dropFirst().forEach { line in
       let cells = line.split(separator: " ").map { $0.replacingOccurrences(of: "_", with: " ") }

@@ -418,4 +418,63 @@ struct TekkonTestsPinyin {
     for char in "slliang" { extended.receiveKey(fromString: String(char)) }
     #expect(extended.romajiBuffer == "slliang")
   }
+
+  /// `mapHanyuPinyin` 之單字母條目：僅餘 `a`／`e`／`o` 三條真音節。
+  ///
+  /// 該表曾另收 `"q": "ㄑ"`——它是全表**唯一**之單字母聲母條目（其餘 20 個聲母皆無），
+  /// 而 `"q"` 並非合法之漢語拼音音節（`qi` 才是，且另有條目）。該條目使**狂拼模式下**
+  /// `q` ＋ `f` 提前切音節並提交一個 `ㄑ`（緩衝留 `f`），而 `b` ＋ `f` 不會；亦使狂拼之
+  /// **簡拼（α）路徑**在 `q` 起首之緩衝上不可達（`performPinyinAutoChopIfNeeded` 先於
+  /// `autoApplyFuriousAbbreviationIfClearWinner` 執行）。
+  ///
+  /// 該條目已於 2026-09-26 依事主指示，自 `Tekkon.mapHanyuPinyin` 與 `LexiconAssembly`
+  /// 之內嵌表 `jsnHanyuPinyinToMPS` **兩處同步刪去**。本測試釘住刪除後之契約：`q` 與其餘
+  /// 20 個聲母行為一致（單鍵不寫槽、不觸發自動切音節、片段展開走前綴擴張）。
+  @Test("[Tekkon] PinyinSingleLetterEntries_AreRealSyllablesOnly")
+  func testSingleLetterEntriesAreRealSyllablesOnly() async throws {
+    // 該表之單字母條目恰為三條，且皆為合法之漢語拼音音節。
+    #expect(Tekkon.mapHanyuPinyin.keys.filter { $0.count == 1 }.sorted() == ["a", "e", "o"])
+    #expect(Tekkon.mapHanyuPinyin["q"] == nil)
+    #expect(Tekkon.mapHanyuPinyin["qi"] == "ㄑㄧ")
+    #expect(Tekkon.mapHanyuPinyin["b"] == nil)
+
+    // 逐鍵：`q` 與 `b` 皆不寫槽（整體查表無此條目）；`a`／`e`／`o` 則寫入各自之韻母。
+    for key in ["q", "b", "z"] {
+      var composer = Tekkon.Composer(arrange: .ofHanyuPinyin)
+      composer.receiveKey(fromString: key)
+      #expect(composer.getComposition() == "")
+      #expect(composer.romajiBuffer == key)
+    }
+    for (key, expected) in [("a", "ㄚ"), ("e", "ㄜ"), ("o", "ㄛ")] {
+      var composer = Tekkon.Composer(arrange: .ofHanyuPinyin)
+      composer.receiveKey(fromString: key)
+      #expect(composer.getComposition() == expected)
+    }
+
+    // 狂拼之自動切音節：`q`＋`f` 與 `b`＋`f` 皆不提交（`nil`）——此即刪除該條目之收益：
+    // `q` 起首之簡拼路徑回復可達。
+    for first in ["q", "b", "z"] {
+      var composer = Tekkon.Composer(arrange: .ofHanyuPinyin)
+      composer.allowsExtendedRomajiBuffer = true
+      composer.receiveKey(fromString: first)
+      composer.romajiBuffer = first
+      #expect(composer.pinyinAutoChopResult(appending: "f") == nil, "first=\(first)")
+    }
+    // 對照組：`a`＋`f` 仍會提交 ㄚ（`a` 是真音節，此行為由音節事實支持）。
+    var vowelFirst = Tekkon.Composer(arrange: .ofHanyuPinyin)
+    vowelFirst.allowsExtendedRomajiBuffer = true
+    vowelFirst.receiveKey(fromString: "a")
+    vowelFirst.romajiBuffer = "a"
+    #expect(vowelFirst.pinyinAutoChopResult(appending: "f")?.committedReadings == ["ㄚ"])
+
+    // 拼音片段展開：`q` 與 `b` 皆走前綴擴張（不再是精確命中）。
+    let trie = Tekkon.PinyinTrie.shared(parser: .ofHanyuPinyin)
+    let qExpansion = trie.zhuyinReadings(forPinyinFragment: "q")
+    #expect(!qExpansion.contains("ㄑ"))
+    #expect(qExpansion.contains("ㄑㄧ"))
+    #expect(qExpansion.count > 1)
+    #expect(trie.zhuyinReadings(forPinyinFragment: "b").count > 1)
+    // `a` 仍是精確命中。
+    #expect(trie.zhuyinReadings(forPinyinFragment: "a") == ["ㄚ"])
+  }
 }

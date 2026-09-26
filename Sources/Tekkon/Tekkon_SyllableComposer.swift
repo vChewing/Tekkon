@@ -516,8 +516,7 @@ extension Tekkon {
         guard shadow.inputValidityCheck(charStr: theKey) else { return false }
         guard shadow.receiveKey(fromScalar: scalar) else { return false }
         let currentValues: [String] = [
-          shadow.consonant.value, shadow.semivowel.value, shadow.vowel.value,
-          shadow.intonation.value,
+          shadow.consonant.value, shadow.semivowel.value, shadow.vowel.value, shadow.intonation.value,
         ]
         for slotIndex in currentValues.indices {
           let value = currentValues[slotIndex]
