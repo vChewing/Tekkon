@@ -91,7 +91,7 @@ extension Tekkon {
     ///
     /// - Warning: **不得**以本函式當作「當前注拼槽可否提交」之依據。單聲母／單韻母乃原廠
     ///   辭典之合法詞條，若以 `isComplete` 為閘則單聲母縮寫打法全滅。「可否提交」之依據是
-    ///   呼叫端之切音節判準（見 `Research/Phase250-ResearchAndNextSurgeryPlan.md` §3.2）。
+    ///   呼叫端之切音節判準（`Composer.shouldAutoChopPhonabets(byTyping:)`）。
     public func isComplete(_ reading: String) -> Bool {
       completeSet.contains(reading)
     }

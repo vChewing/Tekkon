@@ -4,13 +4,13 @@
 
 // 注音狂打自動切音節判準：**生產實作**之回歸靶。
 //
-// 本檔之前身是 `Tests/TekkonTests/TekkonTests_AutoChopPredicate.swift`（P251 之術前驗證靶）——
-// 當時判準尚未落地，故該檔自帶一份「測試端參考實作」與四個版本之對照。判準已於 P255 移入生產碼
-// （`Tekkon.Composer.shouldAutoChopPhonabets(byTyping:)`，自 P261 起實作與本靶同住 `Tekkon`），
+// 本檔之前身是 `Tests/TekkonTests/TekkonTests_AutoChopPredicate.swift`（術前驗證靶）——
+// 當時判準尚未落地，故該檔自帶一份「測試端參考實作」與四個版本之對照。判準已移入生產碼
+// （`Tekkon.Composer.shouldAutoChopPhonabets(byTyping:)`，實作與本靶同住 `Tekkon`），
 // 故**參考實作已刪**，改由本檔直接
 // 驅動生產實作，杜絕「兩份各自演化之判準」。
 //
-// 四項地面真相（與 P251 之結論逐項對應）：
+// 四項地面真相（與術前驗證之結論逐項對應）：
 //   ① 合法單音節編碼之**每一個中途前綴**皆不得觸發切音節；
 //   ② 音節交界處**必須**切（殘餘漏切率 < 5%）；
 //   ③ 單聲母縮寫（`ess`＝ㄍㄋㄋ）須得三顆鍵；
@@ -48,7 +48,7 @@ enum AutoChopCorpus {
 
   /// 素材檔內之資料列總數（**未**過濾）。與 `rows.count` 併用即得「解析損失率」。
   ///
-  /// 此值與 `rows` 之存在理由：**語料讀不到時必須大聲失敗**。P261 之 CI 實錄——Windows
+  /// 此值與 `rows` 之存在理由：**語料讀不到時必須大聲失敗**。CI 實錄——Windows
   /// 之語料整批讀不到（`rows == []`），而當時之靶全以列舉為主，遂只在兩處下界斷言上失手。
   static var rawRowCount: Int { parsed.raw }
 
@@ -66,7 +66,7 @@ enum AutoChopCorpus {
   ///
   /// **不**取用 Tekkon 之 internal 鍵表——改以純公開 API 逐鍵探測：把每個候選鍵餵進一枚空
   /// `Composer`，看它填入哪個槽。靜態排列是一鍵一注音，故此探測即其鍵表之逆。
-  /// 同一符號多鍵時取候選序中最早者（與 P251 之「字典序最小」同義）。
+  /// 同一符號多鍵時取候選序中最早者（與原靶之「字典序最小」同義）。
   static func staticKeys(for parser: Tekkon.MandarinParser) -> [Unicode.Scalar: Unicode.Scalar] {
     var result: [Unicode.Scalar: Unicode.Scalar] = [:]
     for ch in candidateKeys {
@@ -145,7 +145,7 @@ enum AutoChopCorpus {
       // ① 以反引號起始者（`` `NULL``、`` `vezf``…，標記「本排列無此鍵」）；② 尾端帶一空格者
       // （`m `、`too `…，源自素材檔之 `__` ⇒ 空 cell）。**兩者皆為「不適用」之標記，非按鍵。**
       // 不設此閘時，該等字元會被當成按鍵餵給判準——而判準對「非注音按鍵」之反應無定義，
-      // 各平台遂各自為政（P261 之 CI 實錄：Linux 誤切 7366 次、Windows 語料整批讀不到）。
+      // 各平台遂各自為政（CI 實錄：Linux 誤切 7366 次、Windows 語料整批讀不到）。
       guard cells.allSatisfy({ cell in cell.allSatisfy(Self.isKeyCharacter) }) else { continue }
       loadedRows.append(Row(reading: reading, cells: cells))
     }
@@ -190,8 +190,8 @@ struct PhonabetAutoChopPredicateTests {
       }
     }
 
-    // 前綴集由 `allReadings` 就地推導——索引本身刻意不暴露 `allPrefixes`（P252 之裁定：
-    // 只答「是否為前綴」一問），故本靶自行展開、再逐條以 `isPrefix` 交叉驗證。
+    // 前綴集由 `allReadings` 就地推導——索引本身刻意不暴露 `allPrefixes`（只答
+    // 「是否為前綴」一問），故本靶自行展開、再逐條以 `isPrefix` 交叉驗證。
     let allReadings = Tekkon.SyllableIndex.shared(parser: .ofDachen).readings
     var allPrefixes: Set<String> = []
     for reading in allReadings {
@@ -199,7 +199,7 @@ struct PhonabetAutoChopPredicateTests {
     }
     for layout in AutoChopCorpus.staticLayouts {
       let keyMap = AutoChopCorpus.staticKeys(for: layout.parser)
-      // 靶之輸入域不變式：反推所得之按鍵一律須為鍵面字元。**此行即本 phase 之迴歸釘**——
+      // 靶之輸入域不變式：反推所得之按鍵一律須為鍵面字元。**此行即本靶之迴歸釘**——
       // 先前之候選鍵含反引號與空格，反推遂把它們登記成某注音符號之按鍵，而由合法讀音之前綴
       // 生成出**不可鍵入**之鍵序（CI 實錄：Linux 誤切 7366 次，全數為該等鍵）。
       #expect(
@@ -265,7 +265,7 @@ struct PhonabetAutoChopPredicateTests {
           var probe = composer
           probe.receiveKey(fromScalar: key.unicodeScalars.first)
           let postContent = probe.getComposition()
-          // 於**當前狀態**下寫入聲調槽者（聲調鍵／空格）由既有管線固化，不屬本案（照 P251 之守衛）。
+          // 於**當前狀態**下寫入聲調槽者（聲調鍵／空格）由既有管線固化，不屬本案（照原靶之守衛）。
           guard probe.intonation.value == composer.intonation.value else { continue }
           let greedy = index.isPrefix(postContent) && postContent.count > preContent.count
           guard !greedy else { continue }
@@ -280,7 +280,7 @@ struct PhonabetAutoChopPredicateTests {
 
     // 同上：交界數之下界為結構量（0 即語料未載入）；「不得漏切」由 `missed` 承擔。
     #expect(checked > 0, "受檢交界僅 \(checked)：\n\(AutoChopCorpus.diagnostic)")
-    // P251 之實測為 2.19%；此處以 5% 為上限——殘餘之成因（與 `qquu` 之逐槽覆寫在局部
+    // 術前驗證之實測為 2.19%；此處以 5% 為上限——殘餘之成因（與 `qquu` 之逐槽覆寫在局部
     // 可觀測量上同構）已證不可由局部判準分離，屬**已知界線**。
     let rate = Double(missed) * 100 / Double(max(checked, 1))
     #expect(rate < 5, "漏切率 \(rate)%（\(missed)/\(checked)）；樣本：\(sample)")
