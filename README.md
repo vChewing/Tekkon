@@ -128,7 +128,7 @@ let CCC = getComposition(isHanyuPinyin: true)  // 輸出漢語拼音二式（漢
 let DDD = getComposition(isHanyuPinyin: true, isTextBookStyle: true)  // 輸出漢語拼音一式（教科書排版的漢語拼音）
 ```
 
-那原始資料值呢？用 _composer.value 可以拿到原始資料值，但請注意：這個資料值裡面的注音的陰平聲調是以一個西文半形空格來體現的。
+那原始資料值呢？用 _composer.value 可以拿到原始資料值，但請注意：這個資料值裡面的注音的陰平聲調是以一個西文半形空白字元來體現的。
 
 各位可以自行修改一下 TekkonTests.swift 試試看，比如說在其檔案內新增一個 Extension 與測試函式：
 
